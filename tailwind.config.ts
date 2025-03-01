@@ -15,8 +15,10 @@ export default {
           "Segoe UI Symbol",
           "Noto Color Emoji",
         ],
+        survivor: ["Survivant", "sans-serif"],
       },
     },
   },
   plugins: [],
+  darkMode: false,
 } satisfies Config;
