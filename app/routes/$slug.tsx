@@ -9,7 +9,7 @@ import type { Contestant } from "~/utils/seasons";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
-import { X, UserRound } from "lucide-react";
+import { X, UserRound, Share, Copy, Check } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -94,6 +94,8 @@ export default function GroupPage() {
   >(null);
   const [activeTab, setActiveTab] = useState("drafted");
   const [selectedContestantId, setSelectedContestantId] = useState<number | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
   const submit = useSubmit();
 
   // Create a lookup for getting a contestant by ID
@@ -263,19 +265,64 @@ export default function GroupPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">{group.name}</h1>
         <div className="flex items-center space-x-3">
-          <div className="bg-gray-100 rounded-md px-4 py-2 flex items-center space-x-2">
-            <span className="text-sm text-gray-500">Share Link:</span>
-            <ClientFunction
-              fallback={
-                <span className="font-mono font-bold text-sm">Loading...</span>
-              }
-              children={() => (
-                <span className="font-mono font-bold text-sm">
-                  {window.location.origin}/{slug}
-                </span>
-              )}
-            />
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowShareModal(true)}
+            className="flex items-center gap-2"
+          >
+            <Share size={16} />
+            <span>Share</span>
+          </Button>
+          
+          <ClientOnly>
+            {showShareModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <Card className="max-w-md w-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Share size={20} />
+                      Share Group
+                    </CardTitle>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <p className="mb-2 text-sm text-gray-500">Copy the link below to invite others to join:</p>
+                    
+                    <div className="flex items-center space-x-2 mt-3">
+                      <div className="relative bg-gray-100 rounded-md px-3 py-2 flex-grow">
+                        <span className="font-mono text-sm">
+                          {window.location.origin}/{slug}
+                        </span>
+                      </div>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/${slug}`);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }}
+                        className="h-9 w-9"
+                      >
+                        {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                      </Button>
+                    </div>
+                  </CardContent>
+                  
+                  <CardFooter className="justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowShareModal(false)}
+                    >
+                      Close
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            )}
+          </ClientOnly>
           
           <ClientOnly>
             <Button
