@@ -1,7 +1,5 @@
-import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
-import { useLoaderData, Link } from "@remix-run/react";
-import { getAllSeasons } from "~/utils/seasons";
+import type { MetaFunction } from "@remix-run/cloudflare";
+import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -10,34 +8,32 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = async ({ context, request }: LoaderFunctionArgs) => {
-  // Get all the seasons from our utility function
-  const seasons = await getAllSeasons();
-  return json({ seasons });
-};
-
 export default function Index() {
-  const { seasons } = useLoaderData<typeof loader>();
-  
   return (
     <div className="flex flex-col h-screen items-center justify-center">
       <h1 className="text-5xl font-bold text-gray-800 font-survivor mb-8">
         Survivor Fantasy Draft
       </h1>
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Available Seasons</h2>
-        <ul className="space-y-2">
-          {seasons.map((season) => (
-            <li key={season.id} className="p-2 border rounded hover:bg-gray-100">
-              <Link to={`/seasons/${season.id}`} className="block">
-                {season.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 text-gray-500 text-sm">
-          Select a season to view contestants
-        </p>
+      <div className="mt-8 text-center">
+        <h2 className="text-2xl font-bold mb-6">
+          Join or Create a Draft Group
+        </h2>
+
+        <div className="flex flex-col space-y-4 items-center">
+          <Link
+            to="/groups/new"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg w-64 text-center"
+          >
+            Create New Group
+          </Link>
+
+          <Link
+            to="/groups/join"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg w-64 text-center"
+          >
+            Join Existing Group
+          </Link>
+        </div>
       </div>
     </div>
   );
