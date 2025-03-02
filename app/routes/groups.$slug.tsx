@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { getGroup } from "~/utils/kv";
 import type { Group, User } from "~/utils/types";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { slug } = params;
@@ -29,6 +30,21 @@ export default function GroupPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showUserSelection, setShowUserSelection] = useState(false);
   const [selectedExistingUser, setSelectedExistingUser] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("drafted");
+  
+  // Mock data for drafted/undrafted contestants
+  const draftedContestants = [
+    { id: 1, name: "John Smith", tribe: "Green Tribe", status: "Active" },
+    { id: 2, name: "Amanda Johnson", tribe: "Blue Tribe", status: "Active" },
+    { id: 3, name: "Michael Lee", tribe: "Green Tribe", status: "Eliminated" },
+  ];
+  
+  const undraftedContestants = [
+    { id: 4, name: "Sarah Williams", tribe: "Blue Tribe", status: "Active" },
+    { id: 5, name: "David Brown", tribe: "Red Tribe", status: "Active" },
+    { id: 6, name: "Jessica Miller", tribe: "Red Tribe", status: "Active" },
+    { id: 7, name: "Robert Davis", tribe: "Green Tribe", status: "Active" },
+  ];
   
   // Check if user exists in localStorage or URL param on client-side
   useEffect(() => {
@@ -157,52 +173,109 @@ export default function GroupPage() {
           </div>
         )}
       </ClientOnly>
-
-      <div className="bg-gray-50 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Members</h2>
-          <ClientOnly>
-            {!currentUser ? (
-              <button
-                onClick={() => setShowUserSelection(true)}
-                className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-1 px-3 rounded-md"
-              >
-                + Join Group
-              </button>
-            ) : null}
-          </ClientOnly>
-        </div>
-
-        {group.users && group.users.length > 0 ? (
+      
+      <Tabs 
+        defaultValue="drafted" 
+        value={activeTab} 
+        onValueChange={setActiveTab}
+        className="w-full mb-6"
+      >
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="drafted">Drafted</TabsTrigger>
+          <TabsTrigger value="undrafted">Undrafted</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="drafted" className="mt-0">
           <div className="bg-white rounded-md p-4 shadow-sm">
-            <ul className="divide-y">
-              {group.users.map((user, index) => (
-                <li
-                  key={index}
-                  className="py-2 flex justify-between items-center"
-                >
-                  <div>
-                    <span>{user.name}</span>
-                    {user.joinedAt && (
-                      <span className="text-xs text-gray-500 ml-2">
-                        Joined {new Date(user.joinedAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {draftedContestants.length > 0 ? (
+              <div>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 text-sm">Name</th>
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 text-sm">Tribe</th>
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 text-sm">Status</th>
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 text-sm">Drafter</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {draftedContestants.map((contestant) => (
+                      <tr key={contestant.id} className="border-b">
+                        <td className="py-2 px-2">{contestant.name}</td>
+                        <td className="py-2 px-2">{contestant.tribe}</td>
+                        <td className="py-2 px-2">
+                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                            contestant.status === "Eliminated" 
+                              ? "bg-red-100 text-red-800" 
+                              : "bg-green-100 text-green-800"
+                          }`}>
+                            {contestant.status}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2">
+                          {group.users[Math.floor(Math.random() * group.users.length)]?.name || "Unknown"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 italic py-8">
+                No contestants have been drafted yet.
+              </p>
+            )}
           </div>
-        ) : (
+        </TabsContent>
+        
+        <TabsContent value="undrafted" className="mt-0">
           <div className="bg-white rounded-md p-4 shadow-sm">
-            <p className="text-center text-gray-500 italic">
-              Waiting for members to join...
-            </p>
+            {undraftedContestants.length > 0 ? (
+              <div>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 text-sm">Name</th>
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 text-sm">Tribe</th>
+                      <th className="text-left py-2 px-2 font-medium text-gray-500 text-sm">Status</th>
+                      <th className="text-right py-2 px-2 font-medium text-gray-500 text-sm">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {undraftedContestants.map((contestant) => (
+                      <tr key={contestant.id} className="border-b">
+                        <td className="py-2 px-2">{contestant.name}</td>
+                        <td className="py-2 px-2">{contestant.tribe}</td>
+                        <td className="py-2 px-2">
+                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                            contestant.status === "Eliminated" 
+                              ? "bg-red-100 text-red-800" 
+                              : "bg-green-100 text-green-800"
+                          }`}>
+                            {contestant.status}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-right">
+                          <button 
+                            className="text-blue-600 hover:text-blue-800 text-sm"
+                            onClick={() => alert(`Draft ${contestant.name}`)}
+                          >
+                            Draft
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 italic py-8">
+                All contestants have been drafted.
+              </p>
+            )}
           </div>
-        )}
-
-      </div>
-
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
