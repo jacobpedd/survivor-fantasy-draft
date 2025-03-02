@@ -9,7 +9,7 @@ import type { Contestant } from "~/utils/seasons";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
-import { X } from "lucide-react";
+import { X, UserRound } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -226,29 +226,26 @@ export default function GroupPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <Card className="max-w-md w-full">
               <CardHeader>
-                <CardTitle>Welcome to {group.name}</CardTitle>
+                <CardTitle>Select User</CardTitle>
               </CardHeader>
 
               <CardContent>
                 {group.users && group.users.length > 0 ? (
-                  <div>
-                    <p className="mb-2 font-medium">Select your name:</p>
-                    <div className="space-y-2 max-h-72 overflow-y-auto">
-                      {group.users.map((user, index) => (
-                        <Button
-                          key={index}
-                          onClick={() => selectExistingUser(index)}
-                          variant={
-                            selectedExistingUser === index
-                              ? "default"
-                              : "outline"
-                          }
-                          className="w-full justify-start h-auto py-2 font-normal"
-                        >
-                          {user.name}
-                        </Button>
-                      ))}
-                    </div>
+                  <div className="space-y-2 max-h-72 overflow-y-auto">
+                    {group.users.map((user, index) => (
+                      <Button
+                        key={index}
+                        onClick={() => selectExistingUser(index)}
+                        variant={
+                          selectedExistingUser === index
+                            ? "default"
+                            : "outline"
+                        }
+                        className="w-full justify-start h-auto py-2 font-normal"
+                      >
+                        {user.name}
+                      </Button>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-4">
@@ -258,12 +255,6 @@ export default function GroupPage() {
                   </div>
                 )}
               </CardContent>
-
-              <CardFooter className="flex justify-end">
-                <Button variant="link" asChild>
-                  <Link to="/new">Create a new group instead</Link>
-                </Button>
-              </CardFooter>
             </Card>
           </div>
         ) : null}
@@ -271,47 +262,38 @@ export default function GroupPage() {
 
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">{group.name}</h1>
-        <div className="bg-gray-100 rounded-md px-4 py-2 flex items-center space-x-2">
-          <span className="text-sm text-gray-500">Share Link:</span>
-          <ClientFunction
-            fallback={
-              <span className="font-mono font-bold text-sm">Loading...</span>
-            }
-            children={() => (
-              <span className="font-mono font-bold text-sm">
-                {window.location.origin}/{slug}
-              </span>
-            )}
-          />
+        <div className="flex items-center space-x-3">
+          <div className="bg-gray-100 rounded-md px-4 py-2 flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Share Link:</span>
+            <ClientFunction
+              fallback={
+                <span className="font-mono font-bold text-sm">Loading...</span>
+              }
+              children={() => (
+                <span className="font-mono font-bold text-sm">
+                  {window.location.origin}/{slug}
+                </span>
+              )}
+            />
+          </div>
+          
+          <ClientOnly>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowUserSelection(true)}
+              className="flex items-center gap-2"
+            >
+              <UserRound size={16} />
+              {currentUser ? (
+                <span className="font-medium">{currentUser.name}</span>
+              ) : (
+                <span>Select User</span>
+              )}
+            </Button>
+          </ClientOnly>
         </div>
       </div>
-
-      <ClientOnly>
-        {currentUser && (
-          <Card className="mb-6 bg-green-50 border-green-100">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="font-medium">Viewing as: </span>
-                  <span>{currentUser.name}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    localStorage.removeItem(`survivor-user-${slug}`);
-                    setCurrentUser(null);
-                    setShowUserSelection(true);
-                  }}
-                  className="text-xs text-gray-600 h-7"
-                >
-                  Switch User
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </ClientOnly>
 
       <Tabs
         defaultValue="drafted"
