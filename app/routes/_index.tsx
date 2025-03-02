@@ -1,5 +1,6 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
-import { Link } from "@remix-run/react";
+import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { Link, useLoaderData } from "@remix-run/react";
+import { json } from "@remix-run/cloudflare";
 
 export const meta: MetaFunction = () => {
   return [
@@ -26,13 +27,10 @@ export default function Index() {
           >
             Create New Group
           </Link>
-
-          <Link
-            to="/groups/join"
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg w-64 text-center"
-          >
-            Join Existing Group
-          </Link>
+        </div>
+        
+        <div className="mt-10 text-sm text-gray-600">
+          <p>To join an existing group, use the invite link shared by the group admin.</p>
         </div>
       </div>
     </div>

@@ -2,6 +2,8 @@ import type { MetaFunction, ActionFunctionArgs } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { Form, useActionData } from "@remix-run/react";
 import { useState } from "react";
+import { createGroup, generateSlug } from "~/utils/kv";
+import type { Group, User } from "~/utils/types";
 
 export const meta: MetaFunction = () => {
   return [
@@ -10,26 +12,46 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const groupName = formData.get("groupName")?.toString();
+  const yourName = formData.get("yourName")?.toString();
   
   if (!groupName || groupName.trim() === "") {
     return json({ error: "Group name is required" });
   }
+
+  if (!yourName || yourName.trim() === "") {
+    return json({ error: "Your name is required" });
+  }
   
-  // TODO: Create group in database
+  const slug = await generateSlug(context.cloudflare.env, groupName);
   
-  // Generate a random 6-character code for the group
-  const groupCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  // Create initial user
+  const admin: User = {
+    name: yourName.trim(),
+    isAdmin: true,
+    joinedAt: Date.now()
+  };
   
-  // For now, just redirect to a mock group page
-  return redirect(`/groups/${groupCode}`);
+  // Create the group in KV
+  const group: Group = {
+    name: groupName.trim(),
+    slug,
+    users: [admin],
+    createdAt: Date.now(),
+  };
+  
+  await createGroup(context.cloudflare.env, group);
+  
+  // Redirect to the new group page
+  return redirect(`/groups/${slug}`);
 };
 
 export default function NewGroup() {
   const actionData = useActionData<typeof action>();
   const [groupName, setGroupName] = useState("");
+  const [yourName, setYourName] = useState("");
   
   return (
     <div className="max-w-md mx-auto p-6 mt-12">
@@ -50,10 +72,27 @@ export default function NewGroup() {
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter a name for your draft group"
           />
-          {actionData?.error && (
-            <p className="mt-1 text-red-600 text-sm">{actionData.error}</p>
-          )}
         </div>
+        
+        <div>
+          <label htmlFor="yourName" className="block text-sm font-medium mb-1">
+            Your Name
+          </label>
+          <input
+            id="yourName"
+            name="yourName"
+            type="text"
+            value={yourName}
+            onChange={(e) => setYourName(e.target.value)}
+            required
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter your name"
+          />
+        </div>
+        
+        {actionData?.error && (
+          <p className="mt-1 text-red-600 text-sm">{actionData.error}</p>
+        )}
         
         <div>
           <button
@@ -67,7 +106,7 @@ export default function NewGroup() {
       
       <div className="mt-8">
         <p className="text-sm text-gray-600">
-          After creating your group, you'll get a group code to share with friends.
+          After creating your group, you'll get a shareable link for friends to join.
         </p>
       </div>
     </div>
