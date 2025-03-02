@@ -57,24 +57,36 @@ export default function GroupPage() {
   const [activeTab, setActiveTab] = useState("undrafted");
 
   // In a real app, this would come from the database
-  // For now, let's randomly assign a few contestants as drafted
-  const [draftedContestantIds] = useState<number[]>(() => {
-    // Randomly select 5 contestants as drafted
-    const drafted = new Set<number>();
-    while (drafted.size < 5) {
-      const randomId = Math.floor(Math.random() * contestants.length) + 1;
-      drafted.add(randomId);
+  // For now, let's assign contestants to users
+  const [userDrafts] = useState(() => {
+    // Create a map of user index to their drafted contestants
+    const userMap: Record<number, Contestant[]> = {};
+    
+    // Ensure each user has at least one contestant
+    group.users.forEach((_, index) => {
+      userMap[index] = [];
+    });
+    
+    // Randomly assign about 1/3 of contestants to users
+    const availableContestants = [...contestants];
+    const totalToDraft = Math.min(Math.floor(contestants.length / 3), contestants.length);
+    
+    for (let i = 0; i < totalToDraft; i++) {
+      // Pick a random contestant
+      const contestantIndex = Math.floor(Math.random() * availableContestants.length);
+      const contestant = availableContestants.splice(contestantIndex, 1)[0];
+      
+      // Assign to a user (cycling through users)
+      const userIndex = i % group.users.length;
+      userMap[userIndex].push(contestant);
     }
-    return Array.from(drafted);
+    
+    return userMap;
   });
-
-  // Filter contestants into drafted and undrafted
-  const draftedContestants = contestants.filter((c) =>
-    draftedContestantIds.includes(c.id)
-  );
-  const undraftedContestants = contestants.filter(
-    (c) => !draftedContestantIds.includes(c.id)
-  );
+  
+  // Get undrafted contestants
+  const draftedContestantIds = Object.values(userDrafts).flat().map(c => c.id);
+  const undraftedContestants = contestants.filter(c => !draftedContestantIds.includes(c.id));
 
   // Check if user exists in localStorage or URL param on client-side
   useEffect(() => {
@@ -221,60 +233,61 @@ export default function GroupPage() {
         className="w-full mb-6"
       >
         <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="drafted">Drafted</TabsTrigger>
+          <TabsTrigger value="drafted">Draft</TabsTrigger>
           <TabsTrigger value="undrafted">Undrafted</TabsTrigger>
         </TabsList>
 
         <TabsContent value="drafted" className="mt-0">
           <div className="bg-white rounded-md p-6 shadow-sm">
-            {draftedContestants.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {draftedContestants.map((contestant) => {
-                  // Randomly assign a drafter from the group
-                  const drafter =
-                    group.users[Math.floor(Math.random() * group.users.length)]
-                      ?.name || "Unknown";
-
-                  return (
-                    <div
-                      key={contestant.id}
-                      className="flex flex-col items-center"
-                    >
-                      <div className="relative">
-                        <div className="relative overflow-hidden rounded-md aspect-square w-full mb-2">
-                          <img
-                            src={contestant.image}
-                            alt={contestant.name}
-                            className={`object-cover w-full h-full ${
-                              contestant.eliminated
-                                ? "opacity-70 grayscale"
-                                : ""
-                            }`}
-                            onError={(e) => {
-                              // Fallback image if the contestant image doesn't load
-                              (e.target as HTMLImageElement).src =
-                                "https://via.placeholder.com/150?text=Contestant";
-                            }}
-                          />
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-1 text-center">
-                            Drafted by: {drafter}
-                          </div>
-                          {contestant.eliminated && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <X
-                                size={300}
-                                className="text-red-600 stroke-[3] drop-shadow-md"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <span className="font-medium text-center">
-                        {contestant.name}
-                      </span>
+            {Object.keys(userDrafts).length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                {group.users.map((user, userIndex) => (
+                  <div key={userIndex} className="flex flex-col">
+                    <div className="flex items-center justify-center mb-3 pb-2 border-b">
+                      <h3 className="text-lg font-semibold text-center">{user.name}</h3>
                     </div>
-                  );
-                })}
+                    
+                    {userDrafts[userIndex]?.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        {userDrafts[userIndex].map((contestant) => (
+                          <div key={contestant.id} className="flex flex-col items-center">
+                            <div className="relative">
+                              <div className="relative overflow-hidden rounded-md aspect-square w-full mb-1">
+                                <img
+                                  src={contestant.image}
+                                  alt={contestant.name}
+                                  className={`object-cover w-full h-full ${
+                                    contestant.eliminated ? "opacity-70 grayscale" : ""
+                                  }`}
+                                  onError={(e) => {
+                                    // Fallback image if the contestant image doesn't load
+                                    (e.target as HTMLImageElement).src =
+                                      "https://via.placeholder.com/150?text=Contestant";
+                                  }}
+                                />
+                                {contestant.eliminated && (
+                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <X
+                                      size={60}
+                                      className="text-red-600 stroke-[3] drop-shadow-md"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-sm font-medium text-center line-clamp-1">
+                              {contestant.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center py-4 px-2">
+                        <p className="text-sm text-gray-500 italic">No contestants drafted</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="text-center text-gray-500 italic py-8">
