@@ -2,7 +2,6 @@ import { useParams, useSearchParams } from "@remix-run/react";
 import { Link, useLoaderData } from "@remix-run/react";
 import { LoaderFunctionArgs, json } from "@remix-run/cloudflare";
 import { useState, useEffect } from "react";
-import { getAllSeasons } from "~/utils/seasons";
 import { getGroup } from "~/utils/kv";
 import type { Group, User } from "~/utils/types";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
@@ -20,13 +19,11 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     throw new Response("Group not found", { status: 404 });
   }
 
-  const seasons = await getAllSeasons();
-
-  return json({ group, seasons });
+  return json({ group });
 };
 
 export default function GroupPage() {
-  const { group, seasons } = useLoaderData<typeof loader>();
+  const { group } = useLoaderData<typeof loader>();
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -161,7 +158,7 @@ export default function GroupPage() {
         )}
       </ClientOnly>
 
-      <div className="bg-gray-50 rounded-lg p-6 mb-8">
+      <div className="bg-gray-50 rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Members</h2>
           <ClientOnly>
@@ -204,51 +201,8 @@ export default function GroupPage() {
           </div>
         )}
 
-        <div className="mt-4 bg-blue-50 rounded-md p-3 text-sm border border-blue-100">
-          <div className="font-medium text-blue-800 mb-1">
-            Share with friends:
-          </div>
-          <ClientFunction
-            fallback={
-              <div className="text-gray-500">Loading share link...</div>
-            }
-            children={() => (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono bg-white px-2 py-1 text-xs border rounded truncate">
-                  {window.location.origin}/groups/{slug}
-                </span>
-                <button
-                  className="text-blue-700 hover:text-blue-900 text-xs"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/groups/${slug}`
-                    );
-                  }}
-                >
-                  Copy
-                </button>
-              </div>
-            )}
-          />
-        </div>
       </div>
 
-      <div className="rounded-lg border p-6">
-        <h2 className="text-xl font-semibold mb-4">Select Season</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {seasons.map((season) => (
-            <Link
-              key={season.id}
-              to={`/groups/${slug}/seasons/${season.id}`}
-              className="bg-white rounded-md p-4 border hover:border-blue-500 hover:shadow-md transition"
-            >
-              <div className="font-bold">{season.name}</div>
-              <div className="text-sm text-gray-600 mt-1">Start new draft</div>
-            </Link>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
