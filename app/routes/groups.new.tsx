@@ -25,33 +25,79 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     return json({ error: "Your name is required" });
   }
   
+  // Get all member names
+  const memberNames: string[] = [];
+  for (const [key, value] of formData.entries()) {
+    if (key.startsWith('member-') && typeof value === 'string' && value.trim() !== '') {
+      memberNames.push(value.trim());
+    }
+  }
+  
+  // Check for duplicate names
+  const allNames = [yourName.trim(), ...memberNames];
+  const uniqueNames = new Set(allNames.map(name => name.toLowerCase()));
+  if (uniqueNames.size !== allNames.length) {
+    return json({ error: "Each member must have a unique name" });
+  }
+  
   const slug = await generateSlug(context.cloudflare.env, groupName);
   
-  // Create initial user
-  const admin: User = {
-    name: yourName.trim(),
-    isAdmin: true,
-    joinedAt: Date.now()
-  };
+  // Create users array
+  const now = Date.now();
+  const users: User[] = [
+    {
+      name: yourName.trim(),
+      joinedAt: now
+    }
+  ];
+  
+  // Add additional members
+  memberNames.forEach(name => {
+    users.push({
+      name,
+      joinedAt: now
+    });
+  });
   
   // Create the group in KV
   const group: Group = {
     name: groupName.trim(),
     slug,
-    users: [admin],
-    createdAt: Date.now(),
+    users,
+    createdAt: now,
   };
   
   await createGroup(context.cloudflare.env, group);
   
+  // Set the creator as the current user in localStorage (this will happen client-side after redirect)
+  
   // Redirect to the new group page
-  return redirect(`/groups/${slug}`);
+  return redirect(`/groups/${slug}?setUser=${encodeURIComponent(yourName.trim())}`);
 };
 
 export default function NewGroup() {
   const actionData = useActionData<typeof action>();
   const [groupName, setGroupName] = useState("");
   const [yourName, setYourName] = useState("");
+  const [members, setMembers] = useState<string[]>([""]);
+  
+  const addMember = () => {
+    setMembers([...members, ""]);
+  };
+  
+  const updateMember = (index: number, value: string) => {
+    const updatedMembers = [...members];
+    updatedMembers[index] = value;
+    setMembers(updatedMembers);
+  };
+  
+  const removeMember = (index: number) => {
+    if (members.length > 1) {
+      const updatedMembers = [...members];
+      updatedMembers.splice(index, 1);
+      setMembers(updatedMembers);
+    }
+  };
   
   return (
     <div className="max-w-md mx-auto p-6 mt-12">
@@ -90,6 +136,48 @@ export default function NewGroup() {
           />
         </div>
         
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-sm font-medium">
+              Other Members
+            </label>
+            <button
+              type="button"
+              onClick={addMember}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              + Add Another
+            </button>
+          </div>
+          
+          <div className="space-y-2">
+            {members.map((member, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <input
+                  name={`member-${index}`}
+                  type="text"
+                  value={member}
+                  onChange={(e) => updateMember(index, e.target.value)}
+                  className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={`Member ${index + 1}`}
+                />
+                {members.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeMember(index)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Add all members who will participate in your draft. You can also add them later.
+          </p>
+        </div>
+        
         {actionData?.error && (
           <p className="mt-1 text-red-600 text-sm">{actionData.error}</p>
         )}
@@ -106,7 +194,7 @@ export default function NewGroup() {
       
       <div className="mt-8">
         <p className="text-sm text-gray-600">
-          After creating your group, you'll get a shareable link for friends to join.
+          After creating your group, everyone in the group will be able to access it by selecting their name.
         </p>
       </div>
     </div>

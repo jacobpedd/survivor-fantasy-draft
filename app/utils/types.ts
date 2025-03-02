@@ -6,7 +6,6 @@
 // User type
 export interface User {
   name: string;
-  isAdmin: boolean;
   joinedAt?: number;
 }
 
