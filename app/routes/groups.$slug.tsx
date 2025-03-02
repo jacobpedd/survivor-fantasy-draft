@@ -5,9 +5,11 @@ import { useState, useEffect } from "react";
 import { getGroup } from "~/utils/kv";
 import { getSeasonData } from "~/utils/seasons";
 import type { Group, User } from "~/utils/types";
+import type { Contestant } from "~/utils/seasons";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
+import { X } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -243,7 +245,11 @@ export default function GroupPage() {
                           <img
                             src={contestant.image}
                             alt={contestant.name}
-                            className="object-cover w-full h-full"
+                            className={`object-cover w-full h-full ${
+                              contestant.eliminated
+                                ? "opacity-70 grayscale"
+                                : ""
+                            }`}
                             onError={(e) => {
                               // Fallback image if the contestant image doesn't load
                               (e.target as HTMLImageElement).src =
@@ -253,6 +259,14 @@ export default function GroupPage() {
                           <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-1 text-center">
                             Drafted by: {drafter}
                           </div>
+                          {contestant.eliminated && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <X
+                                size={300}
+                                className="text-red-600 stroke-[3] drop-shadow-md"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                       <span className="font-medium text-center">
@@ -284,13 +298,23 @@ export default function GroupPage() {
                         <img
                           src={contestant.image}
                           alt={contestant.name}
-                          className="object-cover w-full h-full"
+                          className={`object-cover w-full h-full ${
+                            contestant.eliminated ? "opacity-70 grayscale" : ""
+                          }`}
                           onError={(e) => {
                             // Fallback image if the contestant image doesn't load
                             (e.target as HTMLImageElement).src =
                               "https://via.placeholder.com/150?text=Contestant";
                           }}
                         />
+                        {contestant.eliminated && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <X
+                              size={300}
+                              className="text-red-600 stroke-[3] drop-shadow-md"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                     <span className="font-medium text-center">
