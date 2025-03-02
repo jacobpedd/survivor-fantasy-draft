@@ -222,7 +222,10 @@ export default function GroupPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 mt-8">
+    <div className="max-w-4xl mx-auto p-6 mt-4">
+      <h1 className="text-3xl font-bold font-survivor text-center mb-6">
+        Survivor Fantasy Draft
+      </h1>
       <ClientOnly>
         {showUserSelection ? (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -263,7 +266,7 @@ export default function GroupPage() {
       </ClientOnly>
 
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">{group.name}</h1>
+        <h2 className="text-2xl font-semibold">{group.name}</h2>
         <div className="flex items-center space-x-3">
           <Button
             variant="outline"
