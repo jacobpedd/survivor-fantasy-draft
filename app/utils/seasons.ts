@@ -30,26 +30,26 @@ export async function getSeasonData(seasonId: string): Promise<Season | null> {
   if (seasonId === "48") {
     return {
       seasonNumber: 48,
-      seasonName: "Survivor Fiji",
+      seasonName: "Survivor 48",
       contestants: [
-        { id: 1, name: "Charlie Davis", image: "/images/contestants/s48/charlie.jpg" },
-        { id: 2, name: "Gabe Killian", image: "/images/contestants/s48/gabe.jpg" },
-        { id: 3, name: "Hunter McKnight", image: "/images/contestants/s48/hunter.jpg" },
-        { id: 4, name: "Jess Chong", image: "/images/contestants/s48/jess.jpg" },
-        { id: 5, name: "Kenney Lu", image: "/images/contestants/s48/kenney.jpg" },
-        { id: 6, name: "Liz Wilcox", image: "/images/contestants/s48/liz.jpg" },
-        { id: 7, name: "Mars Wright", image: "/images/contestants/s48/mars.jpg" },
-        { id: 8, name: "Rachel LaMont", image: "/images/contestants/s48/rachel.jpg" },
-        { id: 9, name: "Randen Montalvo", image: "/images/contestants/s48/randen.jpg" },
-        { id: 10, name: "Rome Cooney", image: "/images/contestants/s48/rome.jpg" },
-        { id: 11, name: "Sam Phalen", image: "/images/contestants/s48/sam.jpg" },
-        { id: 12, name: "Sierra Wright", image: "/images/contestants/s48/sierra.jpg" },
-        { id: 13, name: "Sol Yi", image: "/images/contestants/s48/sol.jpg" },
-        { id: 14, name: "Sue Smey", image: "/images/contestants/s48/sue.jpg" },
-        { id: 15, name: "Teeny Chirichillo", image: "/images/contestants/s48/teeny.jpg" },
-        { id: 16, name: "Tiyanna Hallums", image: "/images/contestants/s48/tiyanna.jpg" },
-        { id: 17, name: "Venus Vafa", image: "/images/contestants/s48/venus.jpg" },
-        { id: 18, name: "Yvonne Spicer", image: "/images/contestants/s48/yvonne.jpg" }
+        { id: 1, name: "Bianca Roses", image: "/images/contestants/s48/bianca-roses.jpg" },
+        { id: 2, name: "Cedrek McFadden", image: "/images/contestants/s48/cedrek-mcfadden.jpg" },
+        { id: 3, name: "Charity Nelms", image: "/images/contestants/s48/charity-nelms.jpg" },
+        { id: 4, name: "Chrissy Sarnowsky", image: "/images/contestants/s48/chrissy-sarnowsky.jpg" },
+        { id: 5, name: "David Kinne", image: "/images/contestants/s48/david-kinne.jpg" },
+        { id: 6, name: "Eva Erickson", image: "/images/contestants/s48/eva-erickson.jpg" },
+        { id: 7, name: "Joe Hunter", image: "/images/contestants/s48/joe-hunter.jpg" },
+        { id: 8, name: "Justin Pioppi", image: "/images/contestants/s48/justin-pioppi.jpg" },
+        { id: 9, name: "Kamilla Karthigesu", image: "/images/contestants/s48/kamilla-karthigesu.jpg" },
+        { id: 10, name: "Kevin Leung", image: "/images/contestants/s48/kevin-leung.jpg" },
+        { id: 11, name: "Kyle Fraser", image: "/images/contestants/s48/kyle-fraser.jpg" },
+        { id: 12, name: "Mary Zheng", image: "/images/contestants/s48/mary-zheng.jpg" },
+        { id: 13, name: "Mitch Guerra", image: "/images/contestants/s48/mitch-guerra.jpg" },
+        { id: 14, name: "Sai Hughley", image: "/images/contestants/s48/sai-hughley.jpg" },
+        { id: 15, name: "Shauhin Davari", image: "/images/contestants/s48/shauhin-davari.jpg" },
+        { id: 16, name: "Star Toomey", image: "/images/contestants/s48/star-toomey.jpg" },
+        { id: 17, name: "Stephanie Berger", image: "/images/contestants/s48/stephanie-berger.jpg" },
+        { id: 18, name: "Thomas Krottinger", image: "/images/contestants/s48/thomas-krottinger.jpg" }
       ]
     };
   }
@@ -66,7 +66,7 @@ export async function getAllSeasons(): Promise<SeasonInfo[]> {
   return [
     {
       id: "48",
-      name: "Season 48: Survivor Fiji"
+      name: "Season 48: Survivor"
     }
   ];
 }
