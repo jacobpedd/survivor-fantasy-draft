@@ -47,6 +47,89 @@ export async function updateGroup(env: Env, group: Group): Promise<Group> {
 }
 
 /**
+ * Create a new draft round for a group
+ */
+export async function createDraftRound(env: Env, groupSlug: string): Promise<Group | null> {
+  // Get the current group
+  const group = await getGroup(env, groupSlug);
+  
+  if (!group) {
+    return null;
+  }
+  
+  // Initialize draftRounds array if it doesn't exist
+  if (!group.draftRounds) {
+    group.draftRounds = [];
+  }
+  
+  // Calculate the next round number
+  const nextRoundNumber = group.draftRounds.length + 1;
+  
+  // Create a new empty round
+  group.draftRounds.push({
+    roundNumber: nextRoundNumber,
+    picks: [],
+    complete: false
+  });
+  
+  // Save the updated group
+  await updateGroup(env, group);
+  
+  return group;
+}
+
+/**
+ * Make a draft pick
+ */
+export async function makeDraftPick(
+  env: Env, 
+  groupSlug: string, 
+  userName: string, 
+  contestantId: number
+): Promise<Group | null> {
+  // Get the current group
+  const group = await getGroup(env, groupSlug);
+  
+  if (!group) {
+    return null;
+  }
+  
+  // Ensure draftRounds exists
+  if (!group.draftRounds || group.draftRounds.length === 0) {
+    return null; // No active rounds
+  }
+  
+  // Get the current round (last round that's not complete)
+  const currentRoundIndex = group.draftRounds.findIndex(round => !round.complete);
+  
+  if (currentRoundIndex === -1) {
+    return null; // No active rounds
+  }
+  
+  const currentRound = group.draftRounds[currentRoundIndex];
+  
+  // Calculate the next pick number
+  const nextPickNumber = currentRound.picks.length + 1;
+  
+  // Add the pick to the current round
+  currentRound.picks.push({
+    userName,
+    contestantId,
+    pickNumber: nextPickNumber
+  });
+  
+  // Check if the round is complete (all users have picked)
+  if (currentRound.picks.length === group.users.length) {
+    currentRound.complete = true;
+  }
+  
+  // Save the updated group
+  await updateGroup(env, group);
+  
+  return group;
+}
+
+/**
  * Checks if a group with the given slug exists
  */
 export async function slugExists(env: Env, slug: string): Promise<boolean> {
