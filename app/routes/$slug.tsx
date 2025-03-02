@@ -6,6 +6,7 @@ import { getGroup, createDraftRound, makeDraftPick } from "~/utils/kv";
 import { getSeasonData } from "~/utils/seasons";
 import type { Group, User, DraftRound, DraftPick } from "~/utils/types";
 import type { Contestant } from "~/utils/seasons";
+import type { MetaFunction } from "@remix-run/cloudflare";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
@@ -48,6 +49,33 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     group,
     contestants: seasonData.contestants,
   });
+};
+
+export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
+  if (!data?.group) {
+    return [
+      { title: "Group Not Found | Survivor Fantasy Draft" },
+      { name: "description", content: "This Survivor Fantasy Draft group could not be found." },
+    ];
+  }
+
+  const groupName = data.group.name;
+  
+  return [
+    { title: `${groupName} | Survivor Fantasy Draft` },
+    { name: "description", content: `Join the ${groupName} group in Survivor Fantasy Draft and compete with friends!` },
+    // Open Graph / Facebook meta tags
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: `https://survivor-fantasy-draft.pages.dev/${params.slug}` },
+    { property: "og:title", content: `${groupName} | Survivor Fantasy Draft` },
+    { property: "og:description", content: `Join the ${groupName} group in Survivor Fantasy Draft and compete with friends!` },
+    { property: "og:image", content: "https://survivor-fantasy-draft.pages.dev/logo-dark.png" },
+    // Twitter meta tags
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: `${groupName} | Survivor Fantasy Draft` },
+    { name: "twitter:description", content: `Join the ${groupName} group in Survivor Fantasy Draft and compete with friends!` },
+    { name: "twitter:image", content: "https://survivor-fantasy-draft.pages.dev/logo-dark.png" },
+  ];
 };
 
 // Action to handle form submissions for drafting
