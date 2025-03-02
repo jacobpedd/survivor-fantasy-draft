@@ -4,6 +4,10 @@ import { Form, useActionData } from "@remix-run/react";
 import { useState } from "react";
 import { createGroup, generateSlug } from "~/utils/kv";
 import type { Group, User } from "~/utils/types";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 
 export const meta: MetaFunction = () => {
   return [
@@ -101,102 +105,105 @@ export default function NewGroup() {
   
   return (
     <div className="max-w-md mx-auto p-6 mt-12">
-      <h1 className="text-3xl font-bold mb-6 text-center">Create Draft Group</h1>
-      
-      <Form method="post" className="space-y-6">
-        <div>
-          <label htmlFor="groupName" className="block text-sm font-medium mb-1">
-            Group Name
-          </label>
-          <input
-            id="groupName"
-            name="groupName"
-            type="text"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter a name for your draft group"
-          />
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Create Draft Group</CardTitle>
+        </CardHeader>
         
-        <div>
-          <label htmlFor="yourName" className="block text-sm font-medium mb-1">
-            Your Name
-          </label>
-          <input
-            id="yourName"
-            name="yourName"
-            type="text"
-            value={yourName}
-            onChange={(e) => setYourName(e.target.value)}
-            required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter your name"
-          />
-        </div>
-        
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <label className="block text-sm font-medium">
-              Other Members
-            </label>
-            <button
-              type="button"
-              onClick={addMember}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              + Add Another
-            </button>
-          </div>
-          
-          <div className="space-y-2">
-            {members.map((member, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <input
-                  name={`member-${index}`}
-                  type="text"
-                  value={member}
-                  onChange={(e) => updateMember(index, e.target.value)}
-                  className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={`Member ${index + 1}`}
-                />
-                {members.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeMember(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                )}
+        <CardContent>
+          <Form method="post" className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="groupName" className="block text-sm font-medium">
+                Group Name
+              </label>
+              <Input
+                id="groupName"
+                name="groupName"
+                type="text"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                required
+                placeholder="Enter a name for your draft group"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="yourName" className="block text-sm font-medium">
+                Your Name
+              </label>
+              <Input
+                id="yourName"
+                name="yourName"
+                type="text"
+                value={yourName}
+                onChange={(e) => setYourName(e.target.value)}
+                required
+                placeholder="Enter your name"
+              />
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium">
+                  Other Members
+                </label>
+                <Button 
+                  type="button" 
+                  onClick={addMember} 
+                  variant="outline" 
+                  size="sm"
+                >
+                  + Add Another
+                </Button>
               </div>
-            ))}
-          </div>
-          <p className="mt-1 text-xs text-gray-500">
-            Add all members who will participate in your draft. You can also add them later.
-          </p>
-        </div>
+              
+              <div className="space-y-2">
+                {members.map((member, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      name={`member-${index}`}
+                      type="text"
+                      value={member}
+                      onChange={(e) => updateMember(index, e.target.value)}
+                      placeholder={`Member ${index + 1}`}
+                    />
+                    {members.length > 1 && (
+                      <Button
+                        type="button"
+                        onClick={() => removeMember(index)}
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        ✕
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500">
+                Add all members who will participate in your draft. You can also add them later.
+              </p>
+            </div>
+            
+            {actionData?.error && (
+              <Alert variant="destructive">
+                <AlertDescription>{actionData.error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <Button type="submit" className="w-full">
+              Create Group
+            </Button>
+          </Form>
+        </CardContent>
         
-        {actionData?.error && (
-          <p className="mt-1 text-red-600 text-sm">{actionData.error}</p>
-        )}
-        
-        <div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
-          >
-            Create Group
-          </button>
-        </div>
-      </Form>
-      
-      <div className="mt-8">
-        <p className="text-sm text-gray-600">
-          After creating your group, everyone in the group will be able to access it by selecting their name.
-        </p>
-      </div>
+        <CardFooter>
+          <CardDescription className="text-center w-full">
+            After creating your group, everyone in the group will be able to access it by selecting their name.
+          </CardDescription>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

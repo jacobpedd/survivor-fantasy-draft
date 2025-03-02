@@ -6,6 +6,8 @@ import { getGroup } from "~/utils/kv";
 import type { Group, User } from "~/utils/types";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { slug } = params;
@@ -95,41 +97,43 @@ export default function GroupPage() {
       <ClientOnly>
         {showUserSelection ? (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Welcome to {group.name}</h2>
+            <Card className="max-w-md w-full">
+              <CardHeader>
+                <CardTitle>Welcome to {group.name}</CardTitle>
+              </CardHeader>
               
-              {group.users && group.users.length > 0 ? (
-                <div>
-                  <p className="mb-2 font-medium">Select your name:</p>
-                  <div className="space-y-2 max-h-72 overflow-y-auto">
-                    {group.users.map((user, index) => (
-                      <button
-                        key={index}
-                        onClick={() => selectExistingUser(index)}
-                        className={`w-full text-left px-3 py-2 rounded-md hover:bg-blue-50 ${
-                          selectedExistingUser === index ? 'bg-blue-100 border border-blue-300' : 'border'
-                        }`}
-                      >
-                        {user.name}
-                      </button>
-                    ))}
+              <CardContent>
+                {group.users && group.users.length > 0 ? (
+                  <div>
+                    <p className="mb-2 font-medium">Select your name:</p>
+                    <div className="space-y-2 max-h-72 overflow-y-auto">
+                      {group.users.map((user, index) => (
+                        <Button
+                          key={index}
+                          onClick={() => selectExistingUser(index)}
+                          variant={selectedExistingUser === index ? "default" : "outline"}
+                          className="w-full justify-start h-auto py-2 font-normal"
+                        >
+                          {user.name}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-gray-600">No members found in this group.</p>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-gray-600">No members found in this group.</p>
+                  </div>
+                )}
+              </CardContent>
               
-              <div className="mt-6 flex justify-end">
-                <Link
-                  to="/groups/new"
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Create a new group instead
-                </Link>
-              </div>
-            </div>
+              <CardFooter className="flex justify-end">
+                <Button variant="link" asChild>
+                  <Link to="/groups/new">
+                    Create a new group instead
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         ) : null}
       </ClientOnly>
@@ -153,24 +157,28 @@ export default function GroupPage() {
       
       <ClientOnly>
         {currentUser && (
-          <div className="bg-green-50 rounded-lg p-4 mb-6 border border-green-100">
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="font-medium">Viewing as: </span>
-                <span>{currentUser.name}</span>
+          <Card className="mb-6 bg-green-50 border-green-100">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="font-medium">Viewing as: </span>
+                  <span>{currentUser.name}</span>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    localStorage.removeItem(`survivor-user-${slug}`);
+                    setCurrentUser(null);
+                    setShowUserSelection(true);
+                  }}
+                  className="text-xs text-gray-600 h-7"
+                >
+                  Switch User
+                </Button>
               </div>
-              <button 
-                onClick={() => {
-                  localStorage.removeItem(`survivor-user-${slug}`);
-                  setCurrentUser(null);
-                  setShowUserSelection(true);
-                }}
-                className="text-xs text-gray-600 hover:underline"
-              >
-                Switch User
-              </button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </ClientOnly>
       

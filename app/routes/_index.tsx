@@ -1,6 +1,15 @@
 import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/cloudflare";
+import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 
 export const meta: MetaFunction = () => {
   return [
@@ -12,27 +21,13 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   return (
     <div className="flex flex-col h-screen items-center justify-center">
-      <h1 className="text-5xl font-bold text-gray-800 font-survivor mb-8">
+      <h1 className="text-5xl font-bold font-survivor mb-8">
         Survivor Fantasy Draft
       </h1>
-      <div className="mt-8 text-center">
-        <h2 className="text-2xl font-bold mb-6">
-          Join or Create a Draft Group
-        </h2>
 
-        <div className="flex flex-col space-y-4 items-center">
-          <Link
-            to="/groups/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg w-64 text-center"
-          >
-            Create New Group
-          </Link>
-        </div>
-        
-        <div className="mt-10 text-sm text-gray-600">
-          <p>To join an existing group, use the invite link shared by the group admin.</p>
-        </div>
-      </div>
+      <Button asChild className="w-64">
+        <Link to="/groups/new">Create New Group</Link>
+      </Button>
     </div>
   );
 }
