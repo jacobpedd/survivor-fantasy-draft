@@ -26,7 +26,7 @@ export default function Index() {
       </h1>
 
       <Button asChild className="w-64">
-        <Link to="/groups/new">Create New Group</Link>
+        <Link to="/new">Create New Group</Link>
       </Button>
     </div>
   );

@@ -76,7 +76,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   // Set the creator as the current user in localStorage (this will happen client-side after redirect)
   
   // Redirect to the new group page
-  return redirect(`/groups/${slug}?setUser=${encodeURIComponent(yourName.trim())}`);
+  return redirect(`/${slug}?setUser=${encodeURIComponent(yourName.trim())}`);
 };
 
 export default function NewGroup() {

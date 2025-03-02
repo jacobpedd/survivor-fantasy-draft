@@ -261,7 +261,7 @@ export default function GroupPage() {
 
               <CardFooter className="flex justify-end">
                 <Button variant="link" asChild>
-                  <Link to="/groups/new">Create a new group instead</Link>
+                  <Link to="/new">Create a new group instead</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -279,7 +279,7 @@ export default function GroupPage() {
             }
             children={() => (
               <span className="font-mono font-bold text-sm">
-                {window.location.origin}/groups/{slug}
+                {window.location.origin}/{slug}
               </span>
             )}
           />
