@@ -89,7 +89,7 @@ export async function getSeasonData(seasonId: string): Promise<Season | null> {
         },
         {
           id: 10,
-          eliminated: false,
+          eliminated: true,
           name: "Kevin Leung",
           image: "/images/contestants/s48/kevin-leung.jpg",
         },
