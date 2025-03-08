@@ -29,6 +29,38 @@ export async function getGroup(env: Env, slug: string): Promise<Group | null> {
 }
 
 /**
+ * Get all groups from KV
+ * Note: This is potentially inefficient for a large number of groups
+ * and should be replaced with pagination for production use
+ */
+export async function getAllGroups(env: Env): Promise<Group[]> {
+  // List all keys with the group prefix
+  const { keys } = await env.SURVIVOR_KV.list({ prefix: KV_PREFIX.GROUP });
+  
+  if (!keys || keys.length === 0) {
+    return [];
+  }
+  
+  // Fetch all groups in parallel
+  const groupPromises = keys.map(async (key) => {
+    const data = await env.SURVIVOR_KV.get(key.name);
+    if (!data) return null;
+    
+    try {
+      return JSON.parse(data) as Group;
+    } catch (e) {
+      console.error(`Error parsing group data for key ${key.name}:`, e);
+      return null;
+    }
+  });
+  
+  const groups = await Promise.all(groupPromises);
+  
+  // Filter out any null values (failed to fetch or parse)
+  return groups.filter((group): group is Group => group !== null);
+}
+
+/**
  * Create a new group
  */
 export async function createGroup(env: Env, group: Group): Promise<Group> {
