@@ -200,3 +200,18 @@ export async function generateSlug(env: Env, str: string): Promise<string> {
   // If the slug is taken, add a random suffix
   return baseSlug.concat('-', Math.random().toString(36).substring(2, 6));
 }
+
+/**
+ * Delete a group by its slug
+ */
+export async function deleteGroup(env: Env, slug: string): Promise<boolean> {
+  const key = `${KV_PREFIX.GROUP}${slug}`;
+  
+  try {
+    await env.SURVIVOR_KV.delete(key);
+    return true;
+  } catch (error) {
+    console.error("Error deleting group:", error);
+    return false;
+  }
+}

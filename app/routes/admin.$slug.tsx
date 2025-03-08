@@ -10,8 +10,9 @@ import {
   LoaderFunctionArgs,
   ActionFunctionArgs,
   json,
+  redirect
 } from "@remix-run/cloudflare";
-import { getGroup, updateGroup } from "~/utils/kv";
+import { getGroup, updateGroup, deleteGroup } from "~/utils/kv";
 import { Button } from "~/components/ui/button";
 import { Alert } from "~/components/ui/alert";
 import ClientOnly from "~/components/ClientOnly";
@@ -78,6 +79,29 @@ export const action = async ({
       );
     }
   }
+  
+  if (action === "deleteGroup") {
+    try {
+      // Delete the group
+      const success = await deleteGroup(context.cloudflare.env, slug);
+      
+      if (success) {
+        // Redirect to admin home if successful
+        return redirect("/admin");
+      } else {
+        return json(
+          { success: false, error: "Failed to delete group" },
+          { status: 500 }
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting group:", error);
+      return json(
+        { success: false, error: "Error deleting group: " + (error as Error).message },
+        { status: 500 }
+      );
+    }
+  }
 
   return json({ success: false, error: "Unknown action" }, { status: 400 });
 };
@@ -89,12 +113,14 @@ export default function GroupAdminPage() {
   const [jsonValue, setJsonValue] = useState(loaderData.groupJson);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Reset state when loader data changes (when URL/slug changes)
   useEffect(() => {
     setJsonValue(loaderData.groupJson);
     setError(null);
     setSuccess(null);
+    setShowDeleteConfirm(false);
   }, [loaderData]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -117,6 +143,17 @@ export default function GroupAdminPage() {
       setSuccess("Group updated successfully");
     } catch (error) {
       setError("Invalid JSON: " + (error as Error).message);
+    }
+  };
+
+  const handleDelete = () => {
+    if (showDeleteConfirm) {
+      submit(
+        { action: "deleteGroup" },
+        { method: "post" }
+      );
+    } else {
+      setShowDeleteConfirm(true);
     }
   };
 
@@ -156,17 +193,29 @@ export default function GroupAdminPage() {
             />
           </div>
 
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={formatJson}
-            >
-              Format JSON
-            </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              Save Changes
-            </Button>
+          <div className="flex justify-between">
+            <div>
+              <Button
+                type="button"
+                variant="destructive"
+                className={`${showDeleteConfirm ? "bg-red-700 hover:bg-red-800" : "bg-red-600 hover:bg-red-700"}`}
+                onClick={handleDelete}
+              >
+                {showDeleteConfirm ? "Confirm Delete" : "Delete Group"}
+              </Button>
+            </div>
+            <div className="space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={formatJson}
+              >
+                Format JSON
+              </Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                Save Changes
+              </Button>
+            </div>
           </div>
         </Form>
       </div>
