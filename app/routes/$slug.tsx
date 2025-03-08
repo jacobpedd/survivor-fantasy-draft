@@ -163,18 +163,17 @@ export default function GroupPage() {
     const picksCount = currentRound.picks.length;
     const totalUsers = group.users.length;
     
-    // Calculate whose turn it is (accounting for snake draft)
-    // In odd rounds, go in order; in even rounds, go in reverse
+    // Calculate whose turn it is (rotating draft order)
+    // Each round, the first pick rotates to the last position
     const positionInRound = picksCount + 1; // Next pick (1-based)
     let userIndex;
     
-    if (roundNumber % 2 === 1) {
-      // Odd round: forward order
-      userIndex = (positionInRound - 1) % totalUsers;
-    } else {
-      // Even round: reverse order (snake)
-      userIndex = totalUsers - 1 - ((positionInRound - 1) % totalUsers);
-    }
+    // Calculate rotation offset: whoever went first in round 1 goes last in round 2, etc.
+    // roundNumber - 1 gives us the shift amount (0-indexed round number)
+    const rotationOffset = (roundNumber - 1) % totalUsers;
+    
+    // Apply rotation to determine user index
+    userIndex = (rotationOffset + positionInRound - 1) % totalUsers;
     
     return {
       round: currentRound,
