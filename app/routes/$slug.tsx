@@ -7,6 +7,7 @@ import { getSeasonData } from "~/utils/seasons";
 import type { Group, User, DraftRound, DraftPick } from "~/utils/types";
 import type { Contestant } from "~/utils/seasons";
 import type { MetaFunction } from "@remix-run/cloudflare";
+import { CSSProperties } from "react";
 import ClientOnly, { ClientFunction } from "~/components/ClientOnly";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
@@ -109,6 +110,21 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
   }
 
   return json({ success: false, error: "Unknown action" }, { status: 400 });
+};
+
+// Reusable styles for eliminated contestants
+const eliminatedStyles: CSSProperties = {
+  filter: "grayscale(90%) brightness(70%)",
+  opacity: 0.8
+};
+
+// Overlay style for the red tint
+const redOverlayStyles: CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  backgroundColor: 'rgba(220, 38, 38, 0.2)',  // Red with transparency
+  mixBlendMode: 'multiply',
+  pointerEvents: 'none'
 };
 
 export default function GroupPage() {
@@ -501,9 +517,8 @@ export default function GroupPage() {
                                       <img
                                         src={contestantMap[pick.contestantId]?.image}
                                         alt={contestantMap[pick.contestantId]?.name}
-                                        className={`object-cover w-full h-full ${
-                                          contestantMap[pick.contestantId]?.eliminated ? "opacity-70 grayscale" : ""
-                                        }`}
+                                        className="object-cover w-full h-full"
+                                        style={contestantMap[pick.contestantId]?.eliminated ? eliminatedStyles : {}}
                                         onError={(e) => {
                                           // Fallback image if the contestant image doesn't load
                                           (e.target as HTMLImageElement).src =
@@ -511,19 +526,22 @@ export default function GroupPage() {
                                         }}
                                       />
                                       {contestantMap[pick.contestantId]?.eliminated && (
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                          <X
-                                            size={40}
-                                            className="text-red-600 stroke-[3] drop-shadow-md"
-                                          />
-                                        </div>
+                                        <div className="absolute inset-0" style={{
+                                          backgroundColor: 'rgba(239, 68, 68, 0.35)',
+                                          mixBlendMode: 'multiply',
+                                          pointerEvents: 'none'
+                                        }}></div>
                                       )}
                                     </div>
                                   </div>
-                                  <span className="text-sm font-medium text-center line-clamp-1 mt-1">
+                                  <span className={`text-sm font-medium text-center line-clamp-1 mt-1 ${
+                                    contestantMap[pick.contestantId]?.eliminated ? "text-red-800" : ""
+                                  }`}>
                                     {contestantMap[pick.contestantId]?.name}
                                   </span>
-                                  <span className="text-xs text-gray-500">
+                                  <span className={`text-xs ${
+                                    contestantMap[pick.contestantId]?.eliminated ? "text-red-700" : "text-gray-500"
+                                  }`}>
                                     Pick #{pick.pickNumber}
                                   </span>
                                 </div>
@@ -628,63 +646,122 @@ export default function GroupPage() {
           )}
         
           {undraftedContestants.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {undraftedContestants.map((contestant) => (
-                <div
-                  key={contestant.id}
-                  className={`flex flex-col items-center relative ${
-                    // Highlight if this contestant is selected
-                    selectedContestantId === contestant.id 
-                      ? "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1" 
-                      : ""
-                  }`}
-                  onClick={() => {
-                    // Only allow selection if it's the user's turn
-                    if (draftTurn?.isCurrentUser) {
-                      setSelectedContestantId(contestant.id);
-                    }
-                  }}
-                  style={{ cursor: draftTurn?.isCurrentUser ? 'pointer' : 'default' }}
-                >
-                  <div className="relative">
-                    <div className="relative overflow-hidden rounded-md aspect-square w-full mb-2">
-                      <img
-                        src={contestant.image}
-                        alt={contestant.name}
-                        className={`object-cover w-full h-full ${
-                          contestant.eliminated ? "opacity-70 grayscale" : ""
-                        }`}
-                        onError={(e) => {
-                          // Fallback image if the contestant image doesn't load
-                          (e.target as HTMLImageElement).src =
-                            "https://via.placeholder.com/150?text=Contestant";
-                        }}
-                      />
-                      {contestant.eliminated && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <X
-                            size={60}
-                            className="text-red-600 stroke-[3] drop-shadow-md"
-                          />
+            <>
+              {/* Active Contestants */}
+              {undraftedContestants.filter(c => !c.eliminated).length > 0 && (
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Active</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
+                    {undraftedContestants
+                      .filter(contestant => !contestant.eliminated)
+                      .map((contestant) => (
+                        <div
+                          key={contestant.id}
+                          className={`flex flex-col items-center relative ${
+                            // Highlight if this contestant is selected
+                            selectedContestantId === contestant.id 
+                              ? "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1" 
+                              : ""
+                          }`}
+                          onClick={() => {
+                            // Only allow selection if it's the user's turn
+                            if (draftTurn?.isCurrentUser) {
+                              setSelectedContestantId(contestant.id);
+                            }
+                          }}
+                          style={{ cursor: draftTurn?.isCurrentUser ? 'pointer' : 'default' }}
+                        >
+                          <div className="relative">
+                            <div className="relative overflow-hidden rounded-md aspect-square w-full mb-2">
+                              <img
+                                src={contestant.image}
+                                alt={contestant.name}
+                                className="object-cover w-full h-full"
+                                onError={(e) => {
+                                  // Fallback image if the contestant image doesn't load
+                                  (e.target as HTMLImageElement).src =
+                                    "https://via.placeholder.com/150?text=Contestant";
+                                }}
+                              />
+                              
+                              {/* Selection overlay */}
+                              {selectedContestantId === contestant.id && (
+                                <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                                  ✓
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <span className="font-medium text-center">
+                            {contestant.name}
+                          </span>
                         </div>
-                      )}
-                      
-                      {/* Selection overlay */}
-                      {selectedContestantId === contestant.id && (
-                        <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                          ✓
-                        </div>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                  <span className="font-medium text-center">
-                    {contestant.name}
-                  </span>
-                  
-                  {/* No bottom button - removed */}
                 </div>
-              ))}
-            </div>
+              )}
+              
+              {/* Eliminated Contestants */}
+              {undraftedContestants.filter(c => c.eliminated).length > 0 && (
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Eliminated</h3>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {undraftedContestants
+                      .filter(contestant => contestant.eliminated)
+                      .map((contestant) => (
+                        <div
+                          key={contestant.id}
+                          className={`flex flex-col items-center relative ${
+                            // Highlight if this contestant is selected
+                            selectedContestantId === contestant.id 
+                              ? "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1" 
+                              : ""
+                          }`}
+                          onClick={() => {
+                            // Only allow selection if it's the user's turn
+                            if (draftTurn?.isCurrentUser) {
+                              setSelectedContestantId(contestant.id);
+                            }
+                          }}
+                          style={{ cursor: draftTurn?.isCurrentUser ? 'pointer' : 'default' }}
+                        >
+                          <div className="relative">
+                            <div className="relative overflow-hidden rounded-md aspect-square w-full mb-2">
+                              <img
+                                src={contestant.image}
+                                alt={contestant.name}
+                                className="object-cover w-full h-full"
+                                style={eliminatedStyles}
+                                onError={(e) => {
+                                  // Fallback image if the contestant image doesn't load
+                                  (e.target as HTMLImageElement).src =
+                                    "https://via.placeholder.com/150?text=Contestant";
+                                }}
+                              />
+                              <div className="absolute inset-0" style={{
+                                backgroundColor: 'rgba(239, 68, 68, 0.35)',
+                                mixBlendMode: 'multiply',
+                                pointerEvents: 'none'
+                              }}></div>
+                              
+                              {/* Selection overlay */}
+                              {selectedContestantId === contestant.id && (
+                                <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                                  ✓
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <span className="font-medium text-center text-red-800">
+                            {contestant.name}
+                          </span>
+                        </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <p className="text-center text-gray-500 italic py-8">
               All contestants have been drafted
