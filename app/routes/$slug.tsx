@@ -318,7 +318,7 @@ export default function GroupPage() {
             className="flex items-center gap-2"
           >
             <Share size={16} />
-            <span>Share</span>
+            <span className="hidden sm:inline">Share</span>
           </Button>
           
           <ClientOnly>
@@ -379,9 +379,9 @@ export default function GroupPage() {
             >
               <UserRound size={16} />
               {currentUser ? (
-                <span className="font-medium">{currentUser.name}</span>
+                <span className="font-medium hidden sm:inline">{currentUser.name}</span>
               ) : (
-                <span>Select User</span>
+                <span className="hidden sm:inline">Select User</span>
               )}
             </Button>
           </ClientOnly>
@@ -408,7 +408,7 @@ export default function GroupPage() {
                   <p className={`font-medium ${selectedContestantId ? "text-xl" : ""}`}>
                     {draftTurn.isCurrentUser 
                       ? (selectedContestantId ? "Confirm your selection" : "It's your turn to draft") 
-                      : `Waiting for ${draftTurn.userName} to make a pick`}
+                      : `${draftTurn.userName} is drafting...`}
                   </p>
                   {!selectedContestantId && (
                     <p className="text-sm text-gray-600">
@@ -475,10 +475,10 @@ export default function GroupPage() {
                 <table className="w-full mb-4 table-fixed">
                   <thead>
                     <tr className="border-b-2 border-gray-200">
-                      <th className="py-2 px-4 text-center">Round</th>
+                      <th className="py-2 px-4 text-center hidden sm:table-cell">Round</th>
                       {group.users.map((user, index) => (
                         <th key={index} className="py-2 px-2 text-center">
-                          <div className="font-semibold whitespace-nowrap">{user.name}</div>
+                          <div className="font-semibold whitespace-nowrap text-xs sm:text-base">{user.name}</div>
                         </th>
                       ))}
                     </tr>
@@ -489,7 +489,7 @@ export default function GroupPage() {
                         key={round.roundNumber} 
                         className={`${round.complete ? "" : "bg-gray-50"} border-b`}
                       >
-                        <td className="py-4 pr-4">
+                        <td className="py-4 pr-4 hidden sm:table-cell">
                           <div className="flex flex-col items-center justify-center">
                             <div className="font-medium text-xl">{round.roundNumber}</div>
                             <div className="text-xs text-gray-400">
@@ -509,10 +509,10 @@ export default function GroupPage() {
                             draftTurn.userName === user.name;
                           
                           return (
-                            <td key={user.name} className="py-2 px-2 align-middle">
+                            <td key={user.name} className="py-1 px-1 sm:py-2 sm:px-2 align-middle">
                               {pick ? (
                                 <div className="flex flex-col items-center">
-                                  <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                                  <div className="relative w-16 h-16 sm:w-24 sm:h-24">
                                     <div className="relative overflow-hidden rounded-md aspect-square w-full mb-1">
                                       <img
                                         src={contestantMap[pick.contestantId]?.image}
@@ -534,12 +534,12 @@ export default function GroupPage() {
                                       )}
                                     </div>
                                   </div>
-                                  <span className={`text-sm font-medium text-center line-clamp-1 mt-1 ${
+                                  <span className={`text-xs sm:text-sm font-medium text-center line-clamp-1 mt-1 ${
                                     contestantMap[pick.contestantId]?.eliminated ? "text-red-800" : ""
                                   }`}>
                                     {contestantMap[pick.contestantId]?.name}
                                   </span>
-                                  <span className={`text-xs ${
+                                  <span className={`text-[10px] sm:text-xs ${
                                     contestantMap[pick.contestantId]?.eliminated ? "text-red-700" : "text-gray-500"
                                   }`}>
                                     Pick #{pick.pickNumber}
@@ -550,7 +550,7 @@ export default function GroupPage() {
                                   {draftTurn?.isCurrentUser ? (
                                     <div className="text-center">
                                       <Button 
-                                        className="text-sm bg-black hover:bg-gray-800"
+                                        className="text-xs sm:text-sm bg-black hover:bg-gray-800 px-2 py-1 sm:px-3 sm:py-2 h-auto"
                                         onClick={() => setActiveTab("undrafted")}
                                         disabled={!currentUser}
                                       >
@@ -558,13 +558,13 @@ export default function GroupPage() {
                                       </Button>
                                     </div>
                                   ) : (
-                                    <div className="p-3 border-2 border-dashed border-gray-300 rounded-md text-center">
-                                      <p className="text-sm text-gray-500">Waiting for {user.name}...</p>
+                                    <div className="p-2 sm:p-3 border-2 border-dashed border-gray-300 rounded-md text-center">
+                                      <p className="text-xs sm:text-sm text-gray-500">Drafting...</p>
                                     </div>
                                   )}
                                 </div>
                               ) : (
-                                <div className="flex items-center justify-center h-20 text-sm text-gray-400">
+                                <div className="flex items-center justify-center h-16 sm:h-20 text-xs sm:text-sm text-gray-400">
                                   {round.complete ? "Skipped" : "Waiting..."}
                                 </div>
                               )}
@@ -650,8 +650,8 @@ export default function GroupPage() {
               {/* Active Contestants */}
               {undraftedContestants.filter(c => !c.eliminated).length > 0 && (
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Active</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
+                  <h3 className="text-lg font-medium mb-2 sm:mb-4">Active</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mb-8">
                     {undraftedContestants
                       .filter(contestant => !contestant.eliminated)
                       .map((contestant) => (
@@ -692,7 +692,7 @@ export default function GroupPage() {
                               )}
                             </div>
                           </div>
-                          <span className="font-medium text-center">
+                          <span className="font-medium text-center text-xs sm:text-sm">
                             {contestant.name}
                           </span>
                         </div>
@@ -704,9 +704,9 @@ export default function GroupPage() {
               {/* Eliminated Contestants */}
               {undraftedContestants.filter(c => c.eliminated).length > 0 && (
                 <div>
-                  <h3 className="text-lg font-medium mb-4">Eliminated</h3>
+                  <h3 className="text-lg font-medium mb-2 sm:mb-4">Eliminated</h3>
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
                     {undraftedContestants
                       .filter(contestant => contestant.eliminated)
                       .map((contestant) => (
@@ -753,7 +753,7 @@ export default function GroupPage() {
                               )}
                             </div>
                           </div>
-                          <span className="font-medium text-center text-red-800">
+                          <span className="font-medium text-center text-red-800 text-xs sm:text-sm">
                             {contestant.name}
                           </span>
                         </div>
