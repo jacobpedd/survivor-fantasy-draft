@@ -391,8 +391,8 @@ export default function GroupPage() {
                 <div className={selectedContestantId ? "text-center" : ""}>
                   <p className={`font-medium ${selectedContestantId ? "text-xl" : ""}`}>
                     {draftTurn.isCurrentUser 
-                      ? (selectedContestantId ? "Confirm your selection" : "It's your turn to draft!") 
-                      : `Waiting for ${draftTurn.userName} to make a pick...`}
+                      ? (selectedContestantId ? "Confirm your selection" : "It's your turn to draft") 
+                      : `Waiting for ${draftTurn.userName} to make a pick`}
                   </p>
                   {!selectedContestantId && (
                     <p className="text-sm text-gray-600">
@@ -404,7 +404,14 @@ export default function GroupPage() {
                 {draftTurn.isCurrentUser && (
                   <div className="mt-3">
                     {!selectedContestantId && (
-                      <p className="text-sm mb-2">Go to the Undrafted tab to make your selection</p>
+                      <div className="mt-4">
+                        <Button
+                          onClick={() => setActiveTab("undrafted")}
+                          className="bg-black hover:bg-gray-800"
+                        >
+                          Draft
+                        </Button>
+                      </div>
                     )}
                     
                     {selectedContestantId && (
@@ -571,7 +578,7 @@ export default function GroupPage() {
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-500 italic mb-4">
-                  No draft rounds have started yet.
+                  No draft rounds have started yet
                 </p>
                 <Form method="post">
                   <input type="hidden" name="action" value="createRound" />
@@ -589,7 +596,7 @@ export default function GroupPage() {
             <div className="bg-blue-50 p-4 mb-6 rounded-md border border-blue-200">
               <p className="font-medium mb-1">
                 {selectedContestantId 
-                  ? "You've selected a contestant. Return to the Draft tab to confirm your pick."
+                  ? "Return to Draft tab to confirm your pick"
                   : "Select a contestant below to draft"}
               </p>
               <p className="text-sm text-gray-600">
@@ -603,7 +610,7 @@ export default function GroupPage() {
                     onClick={() => setSelectedContestantId(null)}
                     className="mr-2"
                   >
-                    Clear Selection
+                    Clear
                   </Button>
                   
                   <Button
@@ -613,7 +620,7 @@ export default function GroupPage() {
                       window.scrollTo(0, 0);
                     }}
                   >
-                    Return to Draft
+                    Return
                   </Button>
                 </div>
               )}
@@ -680,7 +687,7 @@ export default function GroupPage() {
             </div>
           ) : (
             <p className="text-center text-gray-500 italic py-8">
-              All contestants have been drafted.
+              All contestants have been drafted
             </p>
           )}
         </TabsContent>
