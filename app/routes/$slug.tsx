@@ -384,67 +384,66 @@ export default function GroupPage() {
         </TabsList>
 
         <TabsContent value="drafted" className="mt-0">
-          <div className="bg-white rounded-md p-6 shadow-sm">
-            {/* Draft status card */}
-            {draftTurn && (
-              <div className={`mb-6 p-4 rounded-md ${draftTurn.isCurrentUser ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'}`}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">
-                      {draftTurn.isCurrentUser ? "It's your turn to draft!" : `Waiting for ${draftTurn.userName} to make a pick...`}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Round {draftTurn.round.roundNumber}, Pick {draftTurn.round.picks.length + 1}
-                    </p>
-                  </div>
-                  
-                  {draftTurn.isCurrentUser && selectedContestantId && (
-                    <Form method="post">
-                      <input type="hidden" name="action" value="makePick" />
-                      <input type="hidden" name="userName" value={currentUser?.name} />
-                      <input type="hidden" name="contestantId" value={selectedContestantId} />
-                      <Button 
-                        type="submit"
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        Confirm Pick
-                      </Button>
-                    </Form>
-                  )}
+          {/* Draft status card */}
+          {draftTurn && (
+            <div className={`mb-6 p-4 rounded-md ${draftTurn.isCurrentUser ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'}`}>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium">
+                    {draftTurn.isCurrentUser ? "It's your turn to draft!" : `Waiting for ${draftTurn.userName} to make a pick...`}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Round {draftTurn.round.roundNumber}, Pick {draftTurn.round.picks.length + 1}
+                  </p>
                 </div>
                 
-                {draftTurn.isCurrentUser && (
-                  <div className="mt-3">
-                    <p className="text-sm mb-2">Select a contestant from the Undrafted tab</p>
-                    {selectedContestantId && (
-                      <div className="flex items-center bg-white p-2 rounded-md border">
-                        <div className="w-12 h-12 mr-3">
-                          <img 
-                            src={contestantMap[selectedContestantId]?.image} 
-                            alt={contestantMap[selectedContestantId]?.name}
-                            className="w-full h-full object-cover rounded-md"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Contestant";
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <p className="font-medium">{contestantMap[selectedContestantId]?.name}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {draftTurn.isCurrentUser && selectedContestantId && (
+                  <Form method="post">
+                    <input type="hidden" name="action" value="makePick" />
+                    <input type="hidden" name="userName" value={currentUser?.name} />
+                    <input type="hidden" name="contestantId" value={selectedContestantId} />
+                    <Button 
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Confirm Pick
+                    </Button>
+                  </Form>
                 )}
               </div>
-            )}
-            
-            {/* Draft rounds table */}
+              
+              {draftTurn.isCurrentUser && (
+                <div className="mt-3">
+                  <p className="text-sm mb-2">Select a contestant from the Undrafted tab</p>
+                  {selectedContestantId && (
+                    <div className="flex items-center bg-white p-2 rounded-md border">
+                      <div className="w-12 h-12 mr-3">
+                        <img 
+                          src={contestantMap[selectedContestantId]?.image} 
+                          alt={contestantMap[selectedContestantId]?.name}
+                          className="w-full h-full object-cover rounded-md"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Contestant";
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium">{contestantMap[selectedContestantId]?.name}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Draft rounds table */}
             {group.draftRounds && group.draftRounds.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full mb-4">
+                <table className="w-full mb-4 table-fixed">
                   <thead>
                     <tr className="border-b-2 border-gray-200">
-                      <th className="py-2 px-4 text-center w-24">Round</th>
+                      <th className="py-2 px-4 text-center">Round</th>
                       {group.users.map((user, index) => (
                         <th key={index} className="py-2 px-2 text-center">
                           <div className="font-semibold whitespace-nowrap">{user.name}</div>
@@ -573,111 +572,108 @@ export default function GroupPage() {
                 </Form>
               </div>
             )}
-          </div>
         </TabsContent>
 
         <TabsContent value="undrafted" className="mt-0">
-          <div className="bg-white rounded-md p-6 shadow-sm">
-            {/* Show a draft instruction if it's the user's turn */}
-            {draftTurn?.isCurrentUser && (
-              <div className="bg-blue-50 p-4 mb-6 rounded-md border border-blue-200">
-                <p className="font-medium mb-1">
-                  {selectedContestantId 
-                    ? "You've selected a contestant. Confirm your pick in the Draft tab."
-                    : "Select a contestant to draft"}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Round {draftTurn.round.roundNumber}, Pick {draftTurn.round.picks.length + 1}
-                </p>
-                
-                {selectedContestantId && (
-                  <div className="flex mt-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedContestantId(null)}
-                      className="mr-2"
-                    >
-                      Clear Selection
-                    </Button>
-                    
-                    <Button
-                      onClick={() => {
-                        setActiveTab("drafted");
-                        // Scroll to top to show the confirm button
-                        window.scrollTo(0, 0);
-                      }}
-                    >
-                      Go to Draft to Confirm
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          
-            {undraftedContestants.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {undraftedContestants.map((contestant) => (
-                  <div
-                    key={contestant.id}
-                    className={`flex flex-col items-center relative ${
-                      // Highlight if this contestant is selected
-                      selectedContestantId === contestant.id 
-                        ? "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1" 
-                        : ""
-                    }`}
-                    onClick={() => {
-                      // Only allow selection if it's the user's turn
-                      if (draftTurn?.isCurrentUser) {
-                        setSelectedContestantId(contestant.id);
-                      }
-                    }}
-                    style={{ cursor: draftTurn?.isCurrentUser ? 'pointer' : 'default' }}
-                  >
-                    <div className="relative">
-                      <div className="relative overflow-hidden rounded-md aspect-square w-full mb-2">
-                        <img
-                          src={contestant.image}
-                          alt={contestant.name}
-                          className={`object-cover w-full h-full ${
-                            contestant.eliminated ? "opacity-70 grayscale" : ""
-                          }`}
-                          onError={(e) => {
-                            // Fallback image if the contestant image doesn't load
-                            (e.target as HTMLImageElement).src =
-                              "https://via.placeholder.com/150?text=Contestant";
-                          }}
-                        />
-                        {contestant.eliminated && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <X
-                              size={60}
-                              className="text-red-600 stroke-[3] drop-shadow-md"
-                            />
-                          </div>
-                        )}
-                        
-                        {/* Selection overlay */}
-                        {selectedContestantId === contestant.id && (
-                          <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                            ✓
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <span className="font-medium text-center">
-                      {contestant.name}
-                    </span>
-                    
-                    {/* No bottom button - removed */}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 italic py-8">
-                All contestants have been drafted.
+          {/* Show a draft instruction if it's the user's turn */}
+          {draftTurn?.isCurrentUser && (
+            <div className="bg-blue-50 p-4 mb-6 rounded-md border border-blue-200">
+              <p className="font-medium mb-1">
+                {selectedContestantId 
+                  ? "You've selected a contestant. Confirm your pick in the Draft tab."
+                  : "Select a contestant to draft"}
               </p>
-            )}
-          </div>
+              <p className="text-sm text-gray-600">
+                Round {draftTurn.round.roundNumber}, Pick {draftTurn.round.picks.length + 1}
+              </p>
+              
+              {selectedContestantId && (
+                <div className="flex mt-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedContestantId(null)}
+                    className="mr-2"
+                  >
+                    Clear Selection
+                  </Button>
+                  
+                  <Button
+                    onClick={() => {
+                      setActiveTab("drafted");
+                      // Scroll to top to show the confirm button
+                      window.scrollTo(0, 0);
+                    }}
+                  >
+                    Go to Draft to Confirm
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        
+          {undraftedContestants.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {undraftedContestants.map((contestant) => (
+                <div
+                  key={contestant.id}
+                  className={`flex flex-col items-center relative ${
+                    // Highlight if this contestant is selected
+                    selectedContestantId === contestant.id 
+                      ? "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1" 
+                      : ""
+                  }`}
+                  onClick={() => {
+                    // Only allow selection if it's the user's turn
+                    if (draftTurn?.isCurrentUser) {
+                      setSelectedContestantId(contestant.id);
+                    }
+                  }}
+                  style={{ cursor: draftTurn?.isCurrentUser ? 'pointer' : 'default' }}
+                >
+                  <div className="relative">
+                    <div className="relative overflow-hidden rounded-md aspect-square w-full mb-2">
+                      <img
+                        src={contestant.image}
+                        alt={contestant.name}
+                        className={`object-cover w-full h-full ${
+                          contestant.eliminated ? "opacity-70 grayscale" : ""
+                        }`}
+                        onError={(e) => {
+                          // Fallback image if the contestant image doesn't load
+                          (e.target as HTMLImageElement).src =
+                            "https://via.placeholder.com/150?text=Contestant";
+                        }}
+                      />
+                      {contestant.eliminated && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <X
+                            size={60}
+                            className="text-red-600 stroke-[3] drop-shadow-md"
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Selection overlay */}
+                      {selectedContestantId === contestant.id && (
+                        <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                          ✓
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <span className="font-medium text-center">
+                    {contestant.name}
+                  </span>
+                  
+                  {/* No bottom button - removed */}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 italic py-8">
+              All contestants have been drafted.
+            </p>
+          )}
         </TabsContent>
       </Tabs>
     </div>
