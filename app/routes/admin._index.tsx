@@ -1,3 +1,19 @@
+import { LoaderFunctionArgs, redirect } from "@remix-run/cloudflare";
+import { getAllGroups } from "~/utils/kv";
+
+export const loader = async ({ context }: LoaderFunctionArgs) => {
+  // Get all groups
+  const groups = await getAllGroups(context.cloudflare.env);
+  
+  // If there are groups, redirect to the first one
+  if (groups.length > 0) {
+    return redirect(`/admin/${groups[0].slug}`);
+  }
+  
+  // Otherwise, continue to render the index page
+  return null;
+};
+
 export default function AdminIndex() {
   return (
     <div className="bg-white rounded-md shadow-sm p-6">
