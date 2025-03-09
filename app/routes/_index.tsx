@@ -21,7 +21,7 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   return (
     <div className="flex flex-col h-screen items-center justify-center">
-      <h1 className="text-5xl font-bold font-survivor mb-8">
+      <h1 className="text-5xl font-bold font-survivor mb-8 text-center">
         Survivor Fantasy Draft
       </h1>
 
