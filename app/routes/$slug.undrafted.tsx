@@ -50,10 +50,25 @@ export const action = async ({
         locked
       );
 
-      return json({
-        success,
-        action: "saveAutodraftQueue",
-      });
+      // Return response with HTML Response header to prevent navigation
+      return json(
+        {
+          success,
+          action: "saveAutodraftQueue",
+          queue: {
+            contestantIds,
+            locked,
+            userName,
+            groupSlug: slug,
+            updatedAt: Date.now()
+          }
+        },
+        {
+          headers: {
+            "X-Remix-Revalidate": "yes"
+          }
+        }
+      );
     } catch (e) {
       return json(
         {
@@ -151,7 +166,7 @@ export default function UndraftedTab() {
 
   // Helper functions for autodraft
   const toggleAutodraftSelection = (contestantId: number) => {
-    if (!currentUser || getCurrentAutodraftQueue.locked) return;
+    if (!currentUser || getCurrentAutodraftQueue.locked || !hasMounted) return;
 
     // Current selections
     const currentSelections = getCurrentAutodraftQueue.contestantIds || [];
@@ -174,14 +189,21 @@ export default function UndraftedTab() {
       newSelections = [...currentSelections, contestantId];
     }
 
-    // Submit to server
+    // Create the fetcher form
     const formData = new FormData();
     formData.append("action", "saveAutodraftQueue");
     formData.append("userName", currentUser.name);
     formData.append("contestantIds", JSON.stringify(newSelections));
     formData.append("locked", getCurrentAutodraftQueue.locked.toString());
-    // Submit to the current route's action with explicit URL
-    submit(formData, { method: "post", action: `/${slug}/undrafted` });
+
+    // Use the fetcher to submit without navigation
+    autodraftFetcher.submit(formData, {
+      method: "post",
+      action: `/${slug}/undrafted`,
+      navigate: false,
+      fetcherKey: `autodraft-${contestantId}-${Date.now()}`,
+      preventScrollReset: true
+    });
   };
 
   // Get position in autodraft queue
@@ -197,33 +219,52 @@ export default function UndraftedTab() {
   const clearAutodraftSelections = () => {
     if (!currentUser || getCurrentAutodraftQueue.locked) return;
 
+    // Create the fetcher form
     const formData = new FormData();
     formData.append("action", "saveAutodraftQueue");
     formData.append("userName", currentUser.name);
     formData.append("contestantIds", JSON.stringify([]));
     formData.append("locked", getCurrentAutodraftQueue.locked.toString());
-    // Submit to the current route's action with explicit URL
-    submit(formData, { method: "post", action: `/${slug}/undrafted` });
+
+    // Use the fetcher to submit without navigation
+    autodraftFetcher.submit(formData, {
+      method: "post",
+      action: `/${slug}/undrafted`,
+      navigate: false,
+      fetcherKey: `autodraft-clear-${Date.now()}`,
+      preventScrollReset: true
+    });
   };
 
   // Toggle lock status
   const toggleAutodraftLock = () => {
     if (!currentUser) return;
 
+    // Create the fetcher form
     const formData = new FormData();
     formData.append("action", "saveAutodraftQueue");
     formData.append("userName", currentUser.name);
-    formData.append(
-      "contestantIds",
-      JSON.stringify(getCurrentAutodraftQueue.contestantIds || [])
-    );
+    formData.append("contestantIds", JSON.stringify(getCurrentAutodraftQueue.contestantIds || []));
     formData.append("locked", (!getCurrentAutodraftQueue.locked).toString());
-    // Submit to the current route's action with explicit URL
-    submit(formData, { method: "post", action: `/${slug}/undrafted` });
+
+    // Use the fetcher to submit without navigation
+    autodraftFetcher.submit(formData, {
+      method: "post",
+      action: `/${slug}/undrafted`,
+      navigate: false,
+      fetcherKey: `autodraft-lock-${Date.now()}`,
+      preventScrollReset: true
+    });
   };
 
   // Use fetcher for navigation without page refresh
-  const fetcher = useFetcher();
+  const navigationFetcher = useFetcher();
+  
+  // Create a fetcher for autodraft operations with optimistic UI
+  const autodraftFetcher = useFetcher<typeof action>();
+  
+  // Set up a ref to track if we've mounted
+  const hasMounted = useMemo(() => true, []);
   
   // Handle selection and navigate to draft tab
   const handleSelectContestant = (contestantId: number) => {
@@ -234,9 +275,10 @@ export default function UndraftedTab() {
       } else {
         setSelectedContestantId(contestantId);
         // Navigate programmatically using fetcher
-        fetcher.load(`/${slug}`);
+        navigationFetcher.load(`/${slug}`);
       }
     } else if (currentUser && !getCurrentAutodraftQueue.locked) {
+      // For autodraft selections, use the dedicated function
       toggleAutodraftSelection(contestantId);
     }
   };
@@ -269,9 +311,14 @@ export default function UndraftedTab() {
                     Clear
                   </Button>
 
-                  <Link to={`/${slug}`} prefetch="intent">
-                    <Button type="button">Return</Button>
-                  </Link>
+                  <Button 
+                    type="button"
+                    onClick={() => {
+                      navigationFetcher.load(`/${slug}`);
+                    }}
+                  >
+                    Return
+                  </Button>
                 </div>
               )}
             </div>
