@@ -3,6 +3,7 @@ import {
   Link,
   useOutletContext,
   useRouteLoaderData,
+  useFetcher,
 } from "@remix-run/react";
 import { useMemo } from "react";
 import { DraftOutletContext, eliminatedStyles } from "./$slug";
@@ -160,12 +161,15 @@ export default function UndraftedTab() {
     submit(formData, { method: "post" });
   };
 
+  // Use fetcher for navigation without page refresh
+  const fetcher = useFetcher();
+  
   // Handle selection and navigate to draft tab
   const handleSelectContestant = (contestantId: number) => {
     if (draftTurn?.isCurrentUser) {
       setSelectedContestantId(contestantId);
-      // Use Remix navigation instead of DOM navigation
-      navigate(`/${slug}`);
+      // Navigate programmatically using fetcher
+      fetcher.load(`/${slug}`);
     } else if (currentUser && !getCurrentAutodraftQueue.locked) {
       toggleAutodraftSelection(contestantId);
     }
@@ -199,9 +203,12 @@ export default function UndraftedTab() {
                     Clear
                   </Button>
 
-                  <Link to={`/${slug}`}>
-                    <Button type="button">Return</Button>
-                  </Link>
+                  <Button 
+                    type="button" 
+                    onClick={() => fetcher.load(`/${slug}`)}
+                  >
+                    Return
+                  </Button>
                 </div>
               )}
             </div>
