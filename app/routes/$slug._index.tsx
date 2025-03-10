@@ -5,7 +5,6 @@ import {
   useOutletContext,
   useRouteLoaderData,
 } from "@remix-run/react";
-import { json } from "@remix-run/cloudflare";
 import { useMemo } from "react";
 import { DraftOutletContext, eliminatedStyles } from "./$slug";
 import { Button } from "~/components/ui/button";

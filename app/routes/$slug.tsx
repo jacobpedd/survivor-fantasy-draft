@@ -3,7 +3,6 @@ import {
   Link,
   useLoaderData,
   useSubmit,
-  Form,
   Outlet,
   useNavigate,
   useLocation,
@@ -22,11 +21,10 @@ import {
   getAutodraftQueue,
 } from "~/utils/kv";
 import { getSeasonData } from "~/utils/seasons";
-import type { Group, User, AutodraftQueue } from "~/utils/types";
+import type { User, AutodraftQueue } from "~/utils/types";
 import type { Contestant } from "~/utils/seasons";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { CSSProperties } from "react";
-import ClientOnly from "~/components/ClientOnly";
 import { Button } from "~/components/ui/button";
 import { UserRound, Share, Copy, Check } from "lucide-react";
 import {
@@ -38,11 +36,7 @@ import {
 } from "~/components/ui/card";
 
 // This data will be available to all child routes via useRouteLoaderData
-export const loader = async ({
-  params,
-  context,
-  request,
-}: LoaderFunctionArgs) => {
+export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { slug } = params;
 
   if (!slug) {

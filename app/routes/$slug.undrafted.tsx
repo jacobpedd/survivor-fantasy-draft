@@ -1,5 +1,4 @@
 import {
-  Form,
   useParams,
   Link,
   useOutletContext,
@@ -9,8 +8,6 @@ import { useMemo } from "react";
 import { DraftOutletContext, eliminatedStyles } from "./$slug";
 import { Button } from "~/components/ui/button";
 import type { AutodraftQueue } from "~/utils/types";
-
-// Remove loader - use parent route data instead
 
 export default function UndraftedTab() {
   // Get data from parent route via useRouteLoaderData
@@ -74,10 +71,22 @@ export default function UndraftedTab() {
   // Get the current user's autodraft queue
   const getCurrentAutodraftQueue = useMemo(() => {
     if (!currentUser || !autodraftQueues) {
-      return { contestantIds: [], locked: false } as AutodraftQueue;
+      return {
+        contestantIds: [],
+        locked: false,
+        groupSlug: slug,
+        userName: "",
+        updatedAt: Date.now(),
+      } as AutodraftQueue;
     }
     return (
-      autodraftQueues[currentUser.name] || { contestantIds: [], locked: false }
+      autodraftQueues[currentUser.name] || {
+        contestantIds: [],
+        locked: false,
+        groupSlug: slug,
+        userName: currentUser.name,
+        updatedAt: Date.now(),
+      }
     );
   }, [currentUser, autodraftQueues]);
 
