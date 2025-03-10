@@ -5,10 +5,68 @@ import {
   useRouteLoaderData,
   useFetcher,
 } from "@remix-run/react";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import { useMemo } from "react";
 import { DraftOutletContext, eliminatedStyles } from "./$slug";
 import { Button } from "~/components/ui/button";
 import type { AutodraftQueue } from "~/utils/types";
+import { saveAutodraftQueue } from "~/utils/kv";
+
+// Action function to handle autodraft queue operations
+export const action = async ({
+  request,
+  params,
+  context,
+}: ActionFunctionArgs) => {
+  const { slug } = params;
+
+  if (!slug) {
+    throw new Response("Group not found", { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const action = formData.get("action") as string;
+
+  // Save autodraft queue
+  if (action === "saveAutodraftQueue") {
+    const userName = formData.get("userName") as string;
+    const contestantIdsJson = formData.get("contestantIds") as string;
+    const locked = formData.get("locked") === "true";
+
+    if (!userName || !contestantIdsJson) {
+      return json(
+        { success: false, error: "Invalid autodraft data" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const contestantIds = JSON.parse(contestantIdsJson) as number[];
+      const success = await saveAutodraftQueue(
+        context.cloudflare.env,
+        slug,
+        userName,
+        contestantIds,
+        locked
+      );
+
+      return json({
+        success,
+        action: "saveAutodraftQueue",
+      });
+    } catch (e) {
+      return json(
+        {
+          success: false,
+          error: "Invalid contestantIds JSON",
+        },
+        { status: 400 }
+      );
+    }
+  }
+
+  return json({ success: false, error: "Unknown action" }, { status: 400 });
+};
 
 export default function UndraftedTab() {
   // Get data from parent route via useRouteLoaderData
@@ -122,7 +180,8 @@ export default function UndraftedTab() {
     formData.append("userName", currentUser.name);
     formData.append("contestantIds", JSON.stringify(newSelections));
     formData.append("locked", getCurrentAutodraftQueue.locked.toString());
-    submit(formData, { method: "post" });
+    // Submit to the current route's action with explicit URL
+    submit(formData, { method: "post", action: `/${slug}/undrafted` });
   };
 
   // Get position in autodraft queue
@@ -143,7 +202,8 @@ export default function UndraftedTab() {
     formData.append("userName", currentUser.name);
     formData.append("contestantIds", JSON.stringify([]));
     formData.append("locked", getCurrentAutodraftQueue.locked.toString());
-    submit(formData, { method: "post" });
+    // Submit to the current route's action with explicit URL
+    submit(formData, { method: "post", action: `/${slug}/undrafted` });
   };
 
   // Toggle lock status
@@ -158,7 +218,8 @@ export default function UndraftedTab() {
       JSON.stringify(getCurrentAutodraftQueue.contestantIds || [])
     );
     formData.append("locked", (!getCurrentAutodraftQueue.locked).toString());
-    submit(formData, { method: "post" });
+    // Submit to the current route's action with explicit URL
+    submit(formData, { method: "post", action: `/${slug}/undrafted` });
   };
 
   // Use fetcher for navigation without page refresh

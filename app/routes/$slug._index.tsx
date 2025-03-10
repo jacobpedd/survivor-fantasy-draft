@@ -5,11 +5,47 @@ import {
   useOutletContext,
   useRouteLoaderData,
 } from "@remix-run/react";
+import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import { useMemo } from "react";
 import { DraftOutletContext, eliminatedStyles } from "./$slug";
 import { Button } from "~/components/ui/button";
+import { makeDraftPick, createDraftRound } from "~/utils/kv";
 
-// Remove loader - use parent route data instead
+// Action function to handle form submissions
+export const action = async ({ request, params, context }: ActionFunctionArgs) => {
+  const { slug } = params;
+
+  if (!slug) {
+    throw new Response("Group not found", { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const action = formData.get("action") as string;
+
+  // Create a new draft round
+  if (action === "createRound") {
+    await createDraftRound(context.cloudflare.env, slug);
+    return json({ success: true, action: "createRound" });
+  }
+
+  // Make a draft pick
+  if (action === "makePick") {
+    const userName = formData.get("userName") as string;
+    const contestantId = parseInt(formData.get("contestantId") as string, 10);
+
+    if (!userName || isNaN(contestantId)) {
+      return json(
+        { success: false, error: "Invalid draft pick data" },
+        { status: 400 }
+      );
+    }
+
+    await makeDraftPick(context.cloudflare.env, slug, userName, contestantId);
+    return json({ success: true, action: "makePick" });
+  }
+
+  return json({ success: false, error: "Unknown action" }, { status: 400 });
+};
 
 export default function DraftTab() {
   // Get data from parent route via useRouteLoaderData
