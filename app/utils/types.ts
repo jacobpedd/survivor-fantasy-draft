@@ -3,6 +3,15 @@
  * These are used for type-safe access to KV storage
  */
 
+// Autodraft queue type - represents a user's preferences for automatic drafting
+export interface AutodraftQueue {
+  groupSlug: string;    // The group this queue belongs to
+  userName: string;     // The user this queue belongs to
+  contestantIds: number[]; // Ordered list of contestant IDs (priority order)
+  locked: boolean;      // Whether the queue is locked and ready for autodraft
+  updatedAt: number;    // Timestamp of last update
+}
+
 // User type
 export interface User {
   name: string;
