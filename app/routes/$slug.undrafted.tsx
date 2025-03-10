@@ -167,9 +167,14 @@ export default function UndraftedTab() {
   // Handle selection and navigate to draft tab
   const handleSelectContestant = (contestantId: number) => {
     if (draftTurn?.isCurrentUser) {
-      setSelectedContestantId(contestantId);
-      // Navigate programmatically using fetcher
-      fetcher.load(`/${slug}`);
+      // If clicking on already selected contestant, clear selection
+      if (selectedContestantId === contestantId) {
+        setSelectedContestantId(null);
+      } else {
+        setSelectedContestantId(contestantId);
+        // Navigate programmatically using fetcher
+        fetcher.load(`/${slug}`);
+      }
     } else if (currentUser && !getCurrentAutodraftQueue.locked) {
       toggleAutodraftSelection(contestantId);
     }
@@ -203,12 +208,9 @@ export default function UndraftedTab() {
                     Clear
                   </Button>
 
-                  <Button 
-                    type="button" 
-                    onClick={() => fetcher.load(`/${slug}`)}
-                  >
-                    Return
-                  </Button>
+                  <Link to={`/${slug}`} prefetch="intent">
+                    <Button type="button">Return</Button>
+                  </Link>
                 </div>
               )}
             </div>
