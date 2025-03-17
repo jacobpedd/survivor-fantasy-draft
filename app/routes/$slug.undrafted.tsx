@@ -67,9 +67,6 @@ export default function UndraftedTab() {
     };
   }, [group.draftRounds, group.users, currentUser]);
 
-  // Use fetcher for navigation without page refresh
-  const navigationFetcher = useFetcher();
-  
   // Handle selection and navigate to draft tab
   const handleSelectContestant = (contestantId: number) => {
     if (draftTurn?.isCurrentUser) {
@@ -78,8 +75,8 @@ export default function UndraftedTab() {
         setSelectedContestantId(null);
       } else {
         setSelectedContestantId(contestantId);
-        // Navigate programmatically using fetcher
-        navigationFetcher.load(`/${slug}`);
+        // Navigate programmatically 
+        navigate(`/${slug}`);
       }
     }
   };
@@ -112,7 +109,7 @@ export default function UndraftedTab() {
               <Button 
                 type="button"
                 onClick={() => {
-                  navigationFetcher.load(`/${slug}`);
+                  navigate(`/${slug}`);
                 }}
               >
                 Return
