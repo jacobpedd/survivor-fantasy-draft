@@ -174,11 +174,7 @@ export default function GroupLayout() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 mt-4">
-      <h1 className="text-3xl font-bold font-survivor text-center mb-6">
-        Survivor Fantasy Draft
-      </h1>
-
+    <div className="max-w-4xl mx-auto px-6 pt-6">
       {/* User selection modal */}
       {showUserSelection && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -215,9 +211,12 @@ export default function GroupLayout() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-semibold">{group.name}</h2>
-        <div className="flex items-center space-x-3">
+      <div className="my-6">
+        {/* Centered title */}
+        <h1 className="text-4xl font-bold font-survivor text-center mb-3">{group.name}</h1>
+        
+        {/* Controls row */}
+        <div className="flex justify-center space-x-4">
           <Button
             variant="outline"
             size="sm"
@@ -225,68 +224,8 @@ export default function GroupLayout() {
             className="flex items-center gap-2"
           >
             <Share size={16} />
-            <span className="hidden sm:inline">Share</span>
+            <span className="inline">Share</span>
           </Button>
-
-          {/* Share modal with ClientOnly wrapper removed - handle conditionally */}
-          {showShareModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <Card className="max-w-md w-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Share size={20} />
-                    Share Group
-                  </CardTitle>
-                </CardHeader>
-
-                <CardContent>
-                  <p className="mb-2 text-sm text-gray-500">
-                    Copy the link below to invite others to join:
-                  </p>
-
-                  <div className="flex items-center space-x-2 mt-3">
-                    <div className="relative bg-gray-100 rounded-md px-3 py-2 flex-grow">
-                      <span className="font-mono text-sm">
-                        {typeof window !== "undefined"
-                          ? `${window.location.origin}/${slug}`
-                          : ""}
-                      </span>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        if (typeof navigator !== "undefined") {
-                          navigator.clipboard.writeText(
-                            `${window.location.origin}/${slug}`
-                          );
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
-                        }
-                      }}
-                      className="h-9 w-9"
-                    >
-                      {copied ? (
-                        <Check size={16} className="text-green-500" />
-                      ) : (
-                        <Copy size={16} />
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowShareModal(false)}
-                  >
-                    Close
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          )}
 
           <Button
             variant="outline"
@@ -296,17 +235,77 @@ export default function GroupLayout() {
           >
             <UserRound size={16} />
             {currentUser ? (
-              <span className="font-medium hidden sm:inline">
+              <span className="font-medium inline">
                 {currentUser.name}
               </span>
             ) : (
-              <span className="hidden sm:inline">Select User</span>
+              <span className="inline">Select User</span>
             )}
           </Button>
         </div>
+
+        {/* Share modal with ClientOnly wrapper removed - handle conditionally */}
+        {showShareModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="max-w-md w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Share size={20} />
+                  Share Group
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent>
+                <p className="mb-2 text-sm text-gray-500">
+                  Copy the link below to invite others to join:
+                </p>
+
+                <div className="flex items-center space-x-2 mt-3">
+                  <div className="relative bg-gray-100 rounded-md px-3 py-2 flex-grow">
+                    <span className="font-mono text-sm">
+                      {typeof window !== "undefined"
+                        ? `${window.location.origin}/${slug}`
+                        : ""}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      if (typeof navigator !== "undefined") {
+                        navigator.clipboard.writeText(
+                          `${window.location.origin}/${slug}`
+                        );
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }
+                    }}
+                    className="h-9 w-9"
+                  >
+                    {copied ? (
+                      <Check size={16} className="text-green-500" />
+                    ) : (
+                      <Copy size={16} />
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+
+              <CardFooter className="justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowShareModal(false)}
+                >
+                  Close
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        )}
       </div>
 
-      <div className="w-full mb-6">
+      <div className="w-full">
         {/* Tab navigation - simplified */}
         <div className="grid w-full grid-cols-2 mb-6 border rounded-md overflow-hidden">
           <Link
