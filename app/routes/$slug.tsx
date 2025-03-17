@@ -24,7 +24,7 @@ import type { Contestant } from "~/utils/seasons";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { CSSProperties } from "react";
 import { Button } from "~/components/ui/button";
-import { UserRound, Share, Copy, Check } from "lucide-react";
+import { UserRound, Share, Copy, Check, CheckCircle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -178,7 +178,7 @@ export default function GroupLayout() {
       {/* User selection modal */}
       {showUserSelection && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="max-w-md w-full">
+          <Card className="max-w-md w-full mx-4">
             <CardHeader>
               <CardTitle>Select User</CardTitle>
             </CardHeader>
@@ -193,9 +193,12 @@ export default function GroupLayout() {
                       variant={
                         selectedExistingUser === index ? "default" : "outline"
                       }
-                      className="w-full justify-start h-auto py-2 font-normal"
+                      className="w-full justify-between h-auto py-2 font-normal"
                     >
-                      {user.name}
+                      <span>{user.name}</span>
+                      {currentUser && user.name === currentUser.name && (
+                        <CheckCircle size={16} className="text-green-600" />
+                      )}
                     </Button>
                   ))}
                 </div>
@@ -247,7 +250,7 @@ export default function GroupLayout() {
         {/* Share modal with ClientOnly wrapper removed - handle conditionally */}
         {showShareModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <Card className="max-w-md w-full">
+            <Card className="max-w-md w-full mx-4">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Share size={20} />
