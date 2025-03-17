@@ -1,4 +1,4 @@
-import { Group, AutodraftQueue } from "./types";
+import { Group } from "./types";
 
 /**
  * KV utility functions for working with Cloudflare KV
@@ -7,7 +7,6 @@ import { Group, AutodraftQueue } from "./types";
 // Prefix keys for different data types
 const KV_PREFIX = {
   GROUP: "group:",
-  AUTODRAFT: "autodraft:", // New prefix for autodraft queues
 };
 
 /**
@@ -217,116 +216,3 @@ export async function deleteGroup(env: Env, slug: string): Promise<boolean> {
   }
 }
 
-/**
- * Save a user's autodraft queue
- */
-export async function saveAutodraftQueue(
-  env: Env, 
-  groupSlug: string, 
-  userName: string, 
-  contestantIds: number[], 
-  locked: boolean
-): Promise<boolean> {
-  // Create a unique key for this user's queue in this group
-  const key = `${KV_PREFIX.AUTODRAFT}${groupSlug}:${userName}`;
-  
-  const queue = {
-    groupSlug,
-    userName,
-    contestantIds,
-    locked,
-    updatedAt: Date.now()
-  };
-  
-  try {
-    await env.SURVIVOR_KV.put(key, JSON.stringify(queue));
-    return true;
-  } catch (error) {
-    console.error("Error saving autodraft queue:", error);
-    return false;
-  }
-}
-
-/**
- * Get a user's autodraft queue
- */
-export async function getAutodraftQueue(
-  env: Env, 
-  groupSlug: string, 
-  userName: string
-): Promise<AutodraftQueue | null> {
-  const key = `${KV_PREFIX.AUTODRAFT}${groupSlug}:${userName}`;
-  
-  try {
-    const data = await env.SURVIVOR_KV.get(key);
-    
-    if (!data) {
-      return null;
-    }
-    
-    return JSON.parse(data) as AutodraftQueue;
-  } catch (error) {
-    console.error("Error getting autodraft queue:", error);
-    return null;
-  }
-}
-
-/**
- * Delete a user's autodraft queue
- */
-export async function deleteAutodraftQueue(
-  env: Env, 
-  groupSlug: string, 
-  userName: string
-): Promise<boolean> {
-  const key = `${KV_PREFIX.AUTODRAFT}${groupSlug}:${userName}`;
-  
-  try {
-    await env.SURVIVOR_KV.delete(key);
-    return true;
-  } catch (error) {
-    console.error("Error deleting autodraft queue:", error);
-    return false;
-  }
-}
-
-/**
- * Get all autodraft queues for a group
- * Useful for processing autodrafts
- */
-export async function getGroupAutodraftQueues(
-  env: Env,
-  groupSlug: string
-): Promise<AutodraftQueue[]> {
-  const prefix = `${KV_PREFIX.AUTODRAFT}${groupSlug}:`;
-  
-  try {
-    // List all keys with the appropriate prefix
-    const { keys } = await env.SURVIVOR_KV.list({ prefix });
-    
-    if (!keys || keys.length === 0) {
-      return [];
-    }
-    
-    // Fetch all queues in parallel
-    const queuePromises = keys.map(async (key) => {
-      const data = await env.SURVIVOR_KV.get(key.name);
-      if (!data) return null;
-      
-      try {
-        return JSON.parse(data) as AutodraftQueue;
-      } catch (e) {
-        console.error(`Error parsing autodraft queue for key ${key.name}:`, e);
-        return null;
-      }
-    });
-    
-    const queues = await Promise.all(queuePromises);
-    
-    // Filter out any null values (failed to fetch or parse)
-    return queues.filter((queue): queue is AutodraftQueue => queue !== null);
-  } catch (error) {
-    console.error("Error getting group autodraft queues:", error);
-    return [];
-  }
-}

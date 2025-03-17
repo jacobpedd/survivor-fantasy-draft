@@ -17,11 +17,9 @@ import {
   getGroup,
   createDraftRound,
   makeDraftPick,
-  saveAutodraftQueue,
-  getAutodraftQueue,
 } from "~/utils/kv";
 import { getSeasonData } from "~/utils/seasons";
-import type { User, AutodraftQueue } from "~/utils/types";
+import type { User } from "~/utils/types";
 import type { Contestant } from "~/utils/seasons";
 import type { MetaFunction } from "@remix-run/cloudflare";
 import { CSSProperties } from "react";
@@ -61,23 +59,6 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     group.draftRounds = [];
   }
 
-  // Load all autodraft queues for users in this group
-  const autodraftQueues: Record<string, AutodraftQueue> = {};
-
-  // Load queues in parallel for better performance
-  await Promise.all(
-    group.users.map(async (user) => {
-      const queue = await getAutodraftQueue(
-        context.cloudflare.env,
-        slug,
-        user.name
-      );
-      if (queue) {
-        autodraftQueues[user.name] = queue;
-      }
-    })
-  );
-
   // Calculate undrafted contestants for the undrafted tab
   const draftedContestantIds = group.draftRounds
     ? group.draftRounds.flatMap((round) =>
@@ -93,7 +74,6 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     group,
     contestants: seasonData.contestants,
     undraftedContestants,
-    autodraftQueues,
   });
 };
 
@@ -124,8 +104,7 @@ export type DraftOutletContext = {
 };
 
 export default function GroupLayout() {
-  const { group, contestants, autodraftQueues } =
-    useLoaderData<typeof loader>();
+  const { group, contestants } = useLoaderData<typeof loader>();
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const [currentUser, setCurrentUser] = useState<User | null>(null);

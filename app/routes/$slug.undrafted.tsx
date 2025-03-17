@@ -1,99 +1,23 @@
 import {
   useParams,
-  Link,
   useOutletContext,
   useRouteLoaderData,
   useFetcher,
 } from "@remix-run/react";
-import { ActionFunctionArgs, json } from "@remix-run/cloudflare";
 import { useMemo } from "react";
 import { DraftOutletContext, eliminatedStyles } from "./$slug";
 import { Button } from "~/components/ui/button";
-import type { AutodraftQueue } from "~/utils/types";
-import { saveAutodraftQueue } from "~/utils/kv";
-
-// Action function to handle autodraft queue operations
-export const action = async ({
-  request,
-  params,
-  context,
-}: ActionFunctionArgs) => {
-  const { slug } = params;
-
-  if (!slug) {
-    throw new Response("Group not found", { status: 404 });
-  }
-
-  const formData = await request.formData();
-  const action = formData.get("action") as string;
-
-  // Save autodraft queue
-  if (action === "saveAutodraftQueue") {
-    const userName = formData.get("userName") as string;
-    const contestantIdsJson = formData.get("contestantIds") as string;
-    const locked = formData.get("locked") === "true";
-
-    if (!userName || !contestantIdsJson) {
-      return json(
-        { success: false, error: "Invalid autodraft data" },
-        { status: 400 }
-      );
-    }
-
-    try {
-      const contestantIds = JSON.parse(contestantIdsJson) as number[];
-      const success = await saveAutodraftQueue(
-        context.cloudflare.env,
-        slug,
-        userName,
-        contestantIds,
-        locked
-      );
-
-      // Return response with HTML Response header to prevent navigation
-      return json(
-        {
-          success,
-          action: "saveAutodraftQueue",
-          queue: {
-            contestantIds,
-            locked,
-            userName,
-            groupSlug: slug,
-            updatedAt: Date.now()
-          }
-        },
-        {
-          headers: {
-            "X-Remix-Revalidate": "yes"
-          }
-        }
-      );
-    } catch (e) {
-      return json(
-        {
-          success: false,
-          error: "Invalid contestantIds JSON",
-        },
-        { status: 400 }
-      );
-    }
-  }
-
-  return json({ success: false, error: "Unknown action" }, { status: 400 });
-};
 
 export default function UndraftedTab() {
   // Get data from parent route via useRouteLoaderData
   const data = useRouteLoaderData("routes/$slug") as any;
-  const { group, contestants, undraftedContestants, autodraftQueues } = data;
+  const { group, contestants, undraftedContestants } = data;
 
   // Get outlet context from parent route
   const {
     currentUser,
     selectedContestantId,
     setSelectedContestantId,
-    submit,
     navigate,
   } = useOutletContext<DraftOutletContext>();
 
@@ -142,129 +66,8 @@ export default function UndraftedTab() {
     };
   }, [group.draftRounds, group.users, currentUser]);
 
-  // Get the current user's autodraft queue
-  const getCurrentAutodraftQueue = useMemo(() => {
-    if (!currentUser || !autodraftQueues) {
-      return {
-        contestantIds: [],
-        locked: false,
-        groupSlug: slug,
-        userName: "",
-        updatedAt: Date.now(),
-      } as AutodraftQueue;
-    }
-    return (
-      autodraftQueues[currentUser.name] || {
-        contestantIds: [],
-        locked: false,
-        groupSlug: slug,
-        userName: currentUser.name,
-        updatedAt: Date.now(),
-      }
-    );
-  }, [currentUser, autodraftQueues]);
-
-  // Helper functions for autodraft
-  const toggleAutodraftSelection = (contestantId: number) => {
-    if (!currentUser || getCurrentAutodraftQueue.locked || !hasMounted) return;
-
-    // Current selections
-    const currentSelections = getCurrentAutodraftQueue.contestantIds || [];
-
-    // Calculate new selections
-    let newSelections: number[];
-
-    // If already selected, remove it
-    if (currentSelections.includes(contestantId)) {
-      newSelections = currentSelections.filter(
-        (id: number) => id !== contestantId
-      );
-    }
-    // If we already have 4 selections, replace the last one
-    else if (currentSelections.length >= 4) {
-      newSelections = [...currentSelections.slice(0, 3), contestantId];
-    }
-    // Otherwise add it to the list
-    else {
-      newSelections = [...currentSelections, contestantId];
-    }
-
-    // Create the fetcher form
-    const formData = new FormData();
-    formData.append("action", "saveAutodraftQueue");
-    formData.append("userName", currentUser.name);
-    formData.append("contestantIds", JSON.stringify(newSelections));
-    formData.append("locked", getCurrentAutodraftQueue.locked.toString());
-
-    // Use the fetcher to submit without navigation
-    autodraftFetcher.submit(formData, {
-      method: "post",
-      action: `/${slug}/undrafted`,
-      navigate: false,
-      fetcherKey: `autodraft-${contestantId}-${Date.now()}`,
-      preventScrollReset: true
-    });
-  };
-
-  // Get position in autodraft queue
-  const getAutodraftSelectionPosition = useMemo(() => {
-    return (contestantId: number): number | null => {
-      const selections = getCurrentAutodraftQueue.contestantIds || [];
-      const index = selections.indexOf(contestantId);
-      return index !== -1 ? index + 1 : null;
-    };
-  }, [getCurrentAutodraftQueue]);
-
-  // Clear autodraft selections
-  const clearAutodraftSelections = () => {
-    if (!currentUser || getCurrentAutodraftQueue.locked) return;
-
-    // Create the fetcher form
-    const formData = new FormData();
-    formData.append("action", "saveAutodraftQueue");
-    formData.append("userName", currentUser.name);
-    formData.append("contestantIds", JSON.stringify([]));
-    formData.append("locked", getCurrentAutodraftQueue.locked.toString());
-
-    // Use the fetcher to submit without navigation
-    autodraftFetcher.submit(formData, {
-      method: "post",
-      action: `/${slug}/undrafted`,
-      navigate: false,
-      fetcherKey: `autodraft-clear-${Date.now()}`,
-      preventScrollReset: true
-    });
-  };
-
-  // Toggle lock status
-  const toggleAutodraftLock = () => {
-    if (!currentUser) return;
-
-    // Create the fetcher form
-    const formData = new FormData();
-    formData.append("action", "saveAutodraftQueue");
-    formData.append("userName", currentUser.name);
-    formData.append("contestantIds", JSON.stringify(getCurrentAutodraftQueue.contestantIds || []));
-    formData.append("locked", (!getCurrentAutodraftQueue.locked).toString());
-
-    // Use the fetcher to submit without navigation
-    autodraftFetcher.submit(formData, {
-      method: "post",
-      action: `/${slug}/undrafted`,
-      navigate: false,
-      fetcherKey: `autodraft-lock-${Date.now()}`,
-      preventScrollReset: true
-    });
-  };
-
   // Use fetcher for navigation without page refresh
   const navigationFetcher = useFetcher();
-  
-  // Create a fetcher for autodraft operations with optimistic UI
-  const autodraftFetcher = useFetcher<typeof action>();
-  
-  // Set up a ref to track if we've mounted
-  const hasMounted = useMemo(() => true, []);
   
   // Handle selection and navigate to draft tab
   const handleSelectContestant = (contestantId: number) => {
@@ -277,163 +80,51 @@ export default function UndraftedTab() {
         // Navigate programmatically using fetcher
         navigationFetcher.load(`/${slug}`);
       }
-    } else if (currentUser && !getCurrentAutodraftQueue.locked) {
-      // For autodraft selections, use the dedicated function
-      toggleAutodraftSelection(contestantId);
     }
   };
 
   return (
     <>
       {/* Show status cards based on draft state */}
-      {draftTurn && (
-        <>
-          {/* If it's user's turn to draft */}
-          {draftTurn.isCurrentUser && (
-            <div className="bg-blue-50 p-4 mb-6 rounded-md border border-blue-200">
-              <p className="font-medium mb-1">
-                {selectedContestantId
-                  ? "Return to Draft tab to confirm your pick"
-                  : "Select a contestant below to draft"}
-              </p>
-              <p className="text-sm text-gray-600">
-                Round {draftTurn.round.roundNumber}, Pick{" "}
-                {draftTurn.round.picks.length + 1}
-              </p>
+      {draftTurn && draftTurn.isCurrentUser && (
+        <div className="bg-blue-50 p-4 mb-6 rounded-md border border-blue-200">
+          <p className="font-medium mb-1">
+            {selectedContestantId
+              ? "Return to Draft tab to confirm your pick"
+              : "Select a contestant below to draft"}
+          </p>
+          <p className="text-sm text-gray-600">
+            Round {draftTurn.round.roundNumber}, Pick{" "}
+            {draftTurn.round.picks.length + 1}
+          </p>
 
-              {selectedContestantId && (
-                <div className="flex mt-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setSelectedContestantId(null)}
-                    className="mr-2"
-                  >
-                    Clear
-                  </Button>
+          {selectedContestantId && (
+            <div className="flex mt-3">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedContestantId(null)}
+                className="mr-2"
+              >
+                Clear
+              </Button>
 
-                  <Button 
-                    type="button"
-                    onClick={() => {
-                      navigationFetcher.load(`/${slug}`);
-                    }}
-                  >
-                    Return
-                  </Button>
-                </div>
-              )}
+              <Button 
+                type="button"
+                onClick={() => {
+                  navigationFetcher.load(`/${slug}`);
+                }}
+              >
+                Return
+              </Button>
             </div>
           )}
-
-          {/* If it's not user's turn - show autodraft UI */}
-          {!draftTurn.isCurrentUser && currentUser && (
-            <div className="bg-gray-50 p-4 mb-6 rounded-md border border-gray-300">
-              <p className="font-medium mb-1">Set up your autodraft queue</p>
-              <p className="text-sm text-gray-600 mb-3">
-                Select up to 4 contestants in order of preference
-              </p>
-
-              {/* Autodraft selections */}
-              <div className="mb-3">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[0, 1, 2, 3].map((index) => {
-                    const contestantId =
-                      getCurrentAutodraftQueue.contestantIds?.[index];
-                    const contestant = contestantId
-                      ? contestantMap[contestantId]
-                      : null;
-
-                    return (
-                      <div
-                        key={index}
-                        className={`border rounded-md p-2 flex flex-col items-center ${
-                          getCurrentAutodraftQueue.locked ? "bg-gray-100" : ""
-                        }`}
-                      >
-                        <div className="text-xs font-medium mb-1 text-gray-500">
-                          Pick {index + 1}
-                        </div>
-
-                        {contestant ? (
-                          <div className="w-full">
-                            <div className="relative overflow-hidden rounded-md aspect-square w-full mb-1">
-                              <img
-                                src={contestant.image}
-                                alt={contestant.name}
-                                className="object-cover w-full h-full"
-                              />
-                            </div>
-                            <div className="text-xs text-center mt-1 line-clamp-1">
-                              {contestant.name}
-                            </div>
-
-                            {!getCurrentAutodraftQueue.locked && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full mt-1 py-0 h-6 text-xs"
-                                onClick={() =>
-                                  toggleAutodraftSelection(contestantId)
-                                }
-                              >
-                                Remove
-                              </Button>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="text-center text-gray-400 text-xs h-24 flex items-center justify-center">
-                            {getCurrentAutodraftQueue.locked
-                              ? "Empty"
-                              : "Select below"}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Action buttons */}
-              <div className="flex justify-between items-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearAutodraftSelections}
-                  disabled={
-                    getCurrentAutodraftQueue.locked ||
-                    (getCurrentAutodraftQueue.contestantIds?.length || 0) === 0
-                  }
-                >
-                  Clear All
-                </Button>
-
-                <Button
-                  size="sm"
-                  className={
-                    getCurrentAutodraftQueue.locked
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-green-600 hover:bg-green-700"
-                  }
-                  onClick={toggleAutodraftLock}
-                  disabled={
-                    !getCurrentAutodraftQueue.locked &&
-                    (getCurrentAutodraftQueue.contestantIds?.length || 0) === 0
-                  }
-                >
-                  {getCurrentAutodraftQueue.locked
-                    ? "Unlock Selections"
-                    : "Lock In Selections"}
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
+        </div>
       )}
 
       {undraftedContestants.length > 0 ? (
         <>
           {/* Active Contestants */}
-          {undraftedContestants.filter((c: any) => !c.eliminated).length >
-            0 && (
+          {undraftedContestants.filter((c: any) => !c.eliminated).length > 0 && (
             <div>
               <h3 className="text-lg font-medium mb-2 sm:mb-4">Active</h3>
               <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mb-8">
@@ -443,29 +134,13 @@ export default function UndraftedTab() {
                     <div
                       key={contestant.id}
                       className={`flex flex-col items-center relative ${
-                        // Highlight based on selection state
-                        (() => {
-                          if (selectedContestantId === contestant.id) {
-                            return "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1";
-                          }
-
-                          const position = getAutodraftSelectionPosition(
-                            contestant.id
-                          );
-                          if (position !== null) {
-                            return "ring-2 ring-green-500 bg-green-50 rounded-md p-1";
-                          }
-
-                          return "";
-                        })()
+                        selectedContestantId === contestant.id
+                          ? "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1"
+                          : ""
                       }`}
                       onClick={() => handleSelectContestant(contestant.id)}
                       style={{
-                        cursor:
-                          draftTurn?.isCurrentUser ||
-                          (!getCurrentAutodraftQueue.locked && currentUser)
-                            ? "pointer"
-                            : "default",
+                        cursor: draftTurn?.isCurrentUser ? "pointer" : "default",
                       }}
                     >
                       <div className="relative">
@@ -482,23 +157,6 @@ export default function UndraftedTab() {
                               ✓
                             </div>
                           )}
-
-                          {/* Autodraft selection number */}
-                          {(() => {
-                            if (!draftTurn?.isCurrentUser) {
-                              const position = getAutodraftSelectionPosition(
-                                contestant.id
-                              );
-                              if (position !== null) {
-                                return (
-                                  <div className="absolute top-2 left-2 bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                                    {position}
-                                  </div>
-                                );
-                              }
-                            }
-                            return null;
-                          })()}
                         </div>
                       </div>
                       <span className="font-medium text-center text-xs sm:text-sm">
@@ -522,21 +180,17 @@ export default function UndraftedTab() {
                     <div
                       key={contestant.id}
                       className={`flex flex-col items-center relative ${
-                        // Highlight if this contestant is selected
                         selectedContestantId === contestant.id
                           ? "ring-2 ring-blue-500 bg-blue-50 rounded-md p-1"
                           : ""
                       }`}
                       onClick={() => {
-                        // Only allow selection if it's the user's turn
                         if (draftTurn?.isCurrentUser) {
                           handleSelectContestant(contestant.id);
                         }
                       }}
                       style={{
-                        cursor: draftTurn?.isCurrentUser
-                          ? "pointer"
-                          : "default",
+                        cursor: draftTurn?.isCurrentUser ? "pointer" : "default",
                       }}
                     >
                       <div className="relative">
