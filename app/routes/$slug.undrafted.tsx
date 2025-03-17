@@ -124,7 +124,6 @@ export default function UndraftedTab() {
           {/* Active Contestants */}
           {undraftedContestants.filter((c: any) => !c.eliminated).length > 0 && (
             <div>
-              <h3 className="text-lg font-medium mb-2 sm:mb-4">Active</h3>
               <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mb-8">
                 {undraftedContestants
                   .filter((contestant: any) => !contestant.eliminated)
