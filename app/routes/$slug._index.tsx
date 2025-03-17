@@ -257,11 +257,11 @@ export default function DraftTab() {
                     return (
                       <td
                         key={user.name}
-                        className="py-3 px-1 sm:py-4 sm:px-2 align-middle"
+                        className="py-3 px-0 sm:py-4 sm:px-1 align-middle"
                       >
                         {pick && contestantMap[pick.contestantId] ? (
                           <div className="flex flex-col items-center">
-                            <div className="relative w-16 h-16 sm:w-24 sm:h-24">
+                            <div className="relative w-20 h-20 sm:w-28 sm:h-28">
                               <div className="relative overflow-hidden rounded-md aspect-square w-full mb-1">
                                 <img
                                   src={contestantMap[pick.contestantId].image}
@@ -312,7 +312,7 @@ export default function DraftTab() {
                             </span>
                           </div>
                         ) : isNextPickCell ? (
-                          <div className="h-24 flex items-center justify-center">
+                          <div className="h-20 sm:h-28 flex items-center justify-center">
                             {draftTurn?.isCurrentUser ? (
                               <div className="text-center">
                                 <Link to={`/${slug}/undrafted`}>
@@ -334,7 +334,7 @@ export default function DraftTab() {
                             )}
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center h-16 sm:h-20 text-xs sm:text-sm text-gray-400">
+                          <div className="flex items-center justify-center h-20 sm:h-28 text-xs sm:text-sm text-gray-400">
                             {round.complete ? "Skipped" : "Waiting..."}
                           </div>
                         )}
