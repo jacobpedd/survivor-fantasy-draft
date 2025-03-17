@@ -18,6 +18,7 @@ export default function UndraftedTab() {
     currentUser,
     selectedContestantId,
     setSelectedContestantId,
+    submit,
     navigate,
   } = useOutletContext<DraftOutletContext>();
 
