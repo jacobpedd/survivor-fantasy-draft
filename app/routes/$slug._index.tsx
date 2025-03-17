@@ -12,7 +12,11 @@ import { Button } from "~/components/ui/button";
 import { makeDraftPick, createDraftRound } from "~/utils/kv";
 
 // Action function to handle form submissions
-export const action = async ({ request, params, context }: ActionFunctionArgs) => {
+export const action = async ({
+  request,
+  params,
+  context,
+}: ActionFunctionArgs) => {
   const { slug } = params;
 
   if (!slug) {
@@ -165,9 +169,13 @@ export default function DraftTab() {
                           />
                         </div>
                       </div>
-                      <span className="text-sm text-gray-600 mt-1">
-                        {contestantMap[selectedContestantId].name}
-                      </span>
+                      <div className="flex flex-col text-center mt-1">
+                        {contestantMap[selectedContestantId].name.split(' ').map((namePart, i) => (
+                          <span key={i} className="text-sm text-gray-600">
+                            {namePart}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -209,7 +217,7 @@ export default function DraftTab() {
                 </th>
                 {group.users.map((user: any, index: number) => (
                   <th key={index} className="py-2 px-2 text-center">
-                    <div className="font-semibold whitespace-nowrap text-xs sm:text-base">
+                    <div className="font-semibold whitespace-nowrap text-sm sm:text-md">
                       {user.name}
                     </div>
                   </th>
@@ -222,7 +230,7 @@ export default function DraftTab() {
                   key={round.roundNumber}
                   className={`${round.complete ? "" : "bg-gray-50"} border-b`}
                 >
-                  <td className="py-4 pr-4 hidden sm:table-cell">
+                  <td className="py-6 pr-4 hidden sm:table-cell">
                     <div className="flex flex-col items-center justify-center">
                       <div className="font-medium text-xl">
                         {round.roundNumber}
@@ -249,7 +257,7 @@ export default function DraftTab() {
                     return (
                       <td
                         key={user.name}
-                        className="py-1 px-1 sm:py-2 sm:px-2 align-middle"
+                        className="py-3 px-1 sm:py-4 sm:px-2 align-middle"
                       >
                         {pick && contestantMap[pick.contestantId] ? (
                           <div className="flex flex-col items-center">
@@ -279,15 +287,20 @@ export default function DraftTab() {
                                 )}
                               </div>
                             </div>
-                            <span
-                              className={`text-xs sm:text-sm font-medium text-center line-clamp-1 mt-1 ${
-                                contestantMap[pick.contestantId].eliminated
-                                  ? "text-red-800"
-                                  : ""
-                              }`}
-                            >
-                              {contestantMap[pick.contestantId].name}
-                            </span>
+                            <div className="flex flex-col text-center mt-1">
+                              {contestantMap[pick.contestantId].name.split(' ').map((namePart, i, arr) => (
+                                <span
+                                  key={i}
+                                  className={`text-xs sm:text-sm font-medium ${
+                                    contestantMap[pick.contestantId].eliminated
+                                      ? "text-red-800"
+                                      : ""
+                                  }`}
+                                >
+                                  {i < arr.length - 1 ? namePart : namePart}
+                                </span>
+                              ))}
+                            </div>
                             <span
                               className={`text-[10px] sm:text-xs ${
                                 contestantMap[pick.contestantId].eliminated
