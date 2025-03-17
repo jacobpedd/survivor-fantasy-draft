@@ -77,7 +77,7 @@ export async function getSeasonData(seasonId: string): Promise<Season | null> {
         },
         {
           id: 8,
-          eliminated: false,
+          eliminated: true,
           name: "Justin Pioppi",
           image: "/images/contestants/s48/justin-pioppi.jpg",
         },
